@@ -2,10 +2,11 @@
 // No React here, so this is trivially unit-testable in Node.
 import { SMALL, CDNS } from "./constants.js";
 
+/** Heuristic: is this line a Title-Case section heading (vs. prose, quote, or Arabic)? */
 export function isHeading(line) {
   const s = line.trim();
   if (!s || s.length > 100) return false;
-  if (/[؀-ۿ]/.test(s)) return false;            // Arabic script
+  if (/[؀-ۿ]/.test(s)) return false;                      // Arabic script
   if (/[.!?:;,"”’)]$/.test(s)) return false;              // ends like prose
   if (/^[(«"]/.test(s)) return false;                     // quote/translation line
   const words = s.match(/[A-Za-z][A-Za-z'’-]*/g);
@@ -16,9 +17,10 @@ export function isHeading(line) {
   return cap / sig.length >= 0.8;
 }
 
+/** Count of whitespace-separated words. */
 export const wordCount = (s) => (s.match(/\S+/g) || []).length;
 
-// Turn a raw surah JSON into a flat, ordered list of sections with word counts.
+/** Turn a raw surah JSON into a flat, ordered list of sections with word counts. */
 export function buildSections(rawAyahs) {
   const ayahs = rawAyahs.slice().sort((a, b) => a.ayah - b.ayah);   // array is string-sorted upstream
   // 1) collapse consecutive identical commentary into blocks spanning an ayah range
@@ -48,30 +50,36 @@ export function buildSections(rawAyahs) {
   }
   // keep only what the app needs (lightweight, cacheable)
   return sections.map((s) => ({
-    title: s.title || `Ayat ${s.ayahStart} (introduction)`,
+    title: s.title || `Ayat ${s.ayahStart}`,
     words: s.words,
     ayahStart: s.ayahStart,
     ayahEnd: s.ayahEnd,
   }));
 }
 
-export async function fetchSurahSections(surah) {
+/** Fetch and section a surah's tafsir, trying each CDN in order. Abortable via `signal`. */
+export async function fetchSurahSections(surah, { signal } = {}) {
   let lastErr;
   for (const url of CDNS.map((f) => f(surah))) {
     try {
-      const res = await fetch(url);
+      const res = await fetch(url, { signal });
       if (!res.ok) throw new Error("HTTP " + res.status);
       const json = await res.json();
       const ayahs = json.ayahs || json;
       if (!Array.isArray(ayahs)) throw new Error("unexpected JSON shape");
       return buildSections(ayahs);
-    } catch (e) { lastErr = e; }
+    } catch (e) {
+      if (e.name === "AbortError") throw e; // caller cancelled — don't try the fallback CDN
+      lastErr = e;
+    }
   }
   throw lastErr || new Error("fetch failed");
 }
 
-// Pick this week's sections starting at startAyah until wordBudget is met
-// (always include at least `minSections` so everyone in the bucket gets a part).
+/**
+ * Pick this week's sections starting at startAyah until wordBudget is met
+ * (always include at least `minSections` so everyone in the bucket gets a part).
+ */
 export function pickWeek(sections, startAyah, wordBudget, minSections) {
   let start = sections.findIndex((s) => s.ayahEnd >= startAyah);
   if (start < 0) start = 0;
@@ -85,14 +93,16 @@ export function pickWeek(sections, startAyah, wordBudget, minSections) {
   return out;
 }
 
-// Compute split indices (where each subsequent member begins) for a contiguous,
-// weight-proportional division of the week's sections.
-//
-// Each reader's target word-count is proportional to their weight; we then choose
-// the section boundaries that globally minimise the total squared deviation from
-// those targets (a DP over sections × readers). Solving it globally — rather than
-// snapping each cut greedily — is what keeps the allocation monotonic in weight,
-// so a heavier weight never ends up with fewer words than a lighter one.
+/**
+ * Compute split indices (where each subsequent member begins) for a contiguous,
+ * weight-proportional division of the week's sections.
+ *
+ * Each reader's target word-count is proportional to their weight; we then choose
+ * the section boundaries that globally minimise the total squared deviation from
+ * those targets (a DP over sections × readers). Solving it globally — rather than
+ * snapping each cut greedily — is what keeps the allocation monotonic in weight,
+ * so a heavier weight never ends up with fewer words than a lighter one.
+ */
 export function computeSplits(weekSections, weights) {
   const n = weights.length;
   if (n <= 1) return [];
@@ -136,6 +146,7 @@ export function computeSplits(weekSections, weights) {
   return bounds.slice(1, n);
 }
 
+/** Materialise each member's contiguous portion (sections, words, ayah range) from the cuts. */
 export function buildAssignments(weekSections, members, splits) {
   const bounds = [0, ...splits, weekSections.length];
   return members.map((name, i) => {

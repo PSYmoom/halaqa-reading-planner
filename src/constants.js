@@ -2,6 +2,11 @@
 
 export const EDITION = "en-tafisr-ibn-kathir";
 
+// Version of the cached sections (part of the localStorage cache key). Bump
+// whenever buildSections' output shape OR content changes — old entries are
+// simply never read again, forcing a refetch through the new code.
+export const CACHE_VERSION = 1;
+
 export const CDNS = [
   (s) => `https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/${EDITION}/${s}.json`,
   (s) => `https://raw.githubusercontent.com/spa5k/tafsir_api/main/tafsir/${EDITION}/${s}.json`,
@@ -10,16 +15,25 @@ export const CDNS = [
 export const quranLink = (surah, ayah) =>
   `https://quran.com/${surah}:${ayah}/tafsirs/${EDITION}`;
 
-export const SURAH_NAMES = ["Al-Fatihah","Al-Baqarah","Aal-'Imran","An-Nisa","Al-Ma'idah","Al-An'am","Al-A'raf","Al-Anfal","At-Tawbah","Yunus","Hud","Yusuf","Ar-Ra'd","Ibrahim","Al-Hijr","An-Nahl","Al-Isra","Al-Kahf","Maryam","Ta-Ha","Al-Anbiya","Al-Hajj","Al-Mu'minun","An-Nur","Al-Furqan","Ash-Shu'ara","An-Naml","Al-Qasas","Al-'Ankabut","Ar-Rum","Luqman","As-Sajdah","Al-Ahzab","Saba","Fatir","Ya-Sin","As-Saffat","Sad","Az-Zumar","Ghafir","Fussilat","Ash-Shura","Az-Zukhruf","Ad-Dukhan","Al-Jathiyah","Al-Ahqaf","Muhammad","Al-Fath","Al-Hujurat","Qaf","Adh-Dhariyat","At-Tur","An-Najm","Al-Qamar","Ar-Rahman","Al-Waqi'ah","Al-Hadid","Al-Mujadila","Al-Hashr","Al-Mumtahanah","As-Saff","Al-Jumu'ah","Al-Munafiqun","At-Taghabun","At-Talaq","At-Tahrim","Al-Mulk","Al-Qalam","Al-Haqqah","Al-Ma'arij","Nuh","Al-Jinn","Al-Muzzammil","Al-Muddaththir","Al-Qiyamah","Al-Insan","Al-Mursalat","An-Naba","An-Nazi'at","'Abasa","At-Takwir","Al-Infitar","Al-Mutaffifin","Al-Inshiqaq","Al-Buruj","At-Tariq","Al-A'la","Al-Ghashiyah","Al-Fajr","Al-Balad","Ash-Shams","Al-Layl","Ad-Duha","Ash-Sharh","At-Tin","Al-'Alaq","Al-Qadr","Al-Bayyinah","Az-Zalzalah","Al-'Adiyat","Al-Qari'ah","At-Takathur","Al-'Asr","Al-Humazah","Al-Fil","Quraysh","Al-Ma'un","Al-Kawthar","Al-Kafirun","An-Nasr","Al-Masad","Al-Ikhlas","Al-Falaq","An-Nas"];
+export const SURAH_NAMES = ["Al-Fatihah", "Al-Baqarah", "Aal-'Imran", "An-Nisa", "Al-Ma'idah", "Al-An'am", "Al-A'raf", "Al-Anfal", "At-Tawbah", "Yunus", "Hud", "Yusuf", "Ar-Ra'd", "Ibrahim", "Al-Hijr", "An-Nahl", "Al-Isra", "Al-Kahf", "Maryam", "Ta-Ha", "Al-Anbiya", "Al-Hajj", "Al-Mu'minun", "An-Nur", "Al-Furqan", "Ash-Shu'ara", "An-Naml", "Al-Qasas", "Al-'Ankabut", "Ar-Rum", "Luqman", "As-Sajdah", "Al-Ahzab", "Saba", "Fatir", "Ya-Sin", "As-Saffat", "Sad", "Az-Zumar", "Ghafir", "Fussilat", "Ash-Shura", "Az-Zukhruf", "Ad-Dukhan", "Al-Jathiyah", "Al-Ahqaf", "Muhammad", "Al-Fath", "Al-Hujurat", "Qaf", "Adh-Dhariyat", "At-Tur", "An-Najm", "Al-Qamar", "Ar-Rahman", "Al-Waqi'ah", "Al-Hadid", "Al-Mujadila", "Al-Hashr", "Al-Mumtahanah", "As-Saff", "Al-Jumu'ah", "Al-Munafiqun", "At-Taghabun", "At-Talaq", "At-Tahrim", "Al-Mulk", "Al-Qalam", "Al-Haqqah", "Al-Ma'arij", "Nuh", "Al-Jinn", "Al-Muzzammil", "Al-Muddaththir", "Al-Qiyamah", "Al-Insan", "Al-Mursalat", "An-Naba", "An-Nazi'at", "'Abasa", "At-Takwir", "Al-Infitar", "Al-Mutaffifin", "Al-Inshiqaq", "Al-Buruj", "At-Tariq", "Al-A'la", "Al-Ghashiyah", "Al-Fajr", "Al-Balad", "Ash-Shams", "Al-Layl", "Ad-Duha", "Ash-Sharh", "At-Tin", "Al-'Alaq", "Al-Qadr", "Al-Bayyinah", "Az-Zalzalah", "Al-'Adiyat", "Al-Qari'ah", "At-Takathur", "Al-'Asr", "Al-Humazah", "Al-Fil", "Quraysh", "Al-Ma'un", "Al-Kawthar", "Al-Kafirun", "An-Nasr", "Al-Masad", "Al-Ikhlas", "Al-Falaq", "An-Nas"];
 
 export const surahName = (n) => SURAH_NAMES[n - 1] || `Surah ${n}`;
 
 // Muted "illuminated manuscript" jewel tones — gold leads, then jade, lapis, etc.
-export const COLORS = ["#c9a24b","#3fae93","#5b8fb0","#bb7a64","#9d7bb0","#5fa88f","#b58a4c","#7fa9c2","#c98f5a","#8fae6b"];
+export const COLORS = ["#c9a24b", "#3fae93", "#5b8fb0", "#bb7a64", "#9d7bb0", "#5fa88f", "#b58a4c", "#7fa9c2", "#c98f5a", "#8fae6b"];
 
 // Approximate words-per-minute for reading the tafsir ALOUD in the halaqa
 // (slower than silent reading; tafsir mixes English prose with Arabic quotes).
 export const READING_WPM = 150;
+
+// Range of the weekly word-budget slider.
+export const WORD_BUDGET = { MIN: 500, MAX: 14000, STEP: 50 };
+
+// How long a toast notification stays on screen.
+export const TOAST_MS = 1600;
+
+// Weight given to a member who hasn't had their slider touched yet.
+export const DEFAULT_WEIGHT = 5;
 
 // Small words ignored when deciding if a line is a Title-Case section heading.
 export const SMALL = new Set("of the that for which during with from as not but or a an in on to and is was were are be by his their them they he she it this these those who whom at into upon".split(" "));

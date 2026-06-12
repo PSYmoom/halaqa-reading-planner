@@ -1,7 +1,7 @@
-// The stacked, draggable split bar. Dividers snap to section boundaries.
-import { Fragment, useRef, useMemo, useCallback } from "react";
+import { Fragment, useRef, useMemo, useEffect, useCallback } from "react";
 import { COLORS } from "../constants.js";
 
+/** The stacked, draggable split bar. Dividers snap to section boundaries. */
 export function SplitBar({ weekSections, assignments, splits, setSplits }) {
   const ref = useRef(null);
   const pre = useMemo(() => {
@@ -29,15 +29,23 @@ export function SplitBar({ weekSections, assignments, splits, setSplits }) {
     }
   }, [splits, pre, total, weekSections.length, setSplits]);
 
+  // The window listeners are registered once per drag, so route them through a
+  // ref to the latest onDrag — otherwise the whole drag would close over the
+  // splits from pointerdown-time and snap against stale neighbours.
+  const onDragRef = useRef(onDrag);
+  useEffect(() => { onDragRef.current = onDrag; });
+
   const startDrag = (idx) => (e) => {
     e.preventDefault();
-    const move = (ev) => onDrag(idx, (ev.touches ? ev.touches[0] : ev).clientX);
-    const up = () => {
+    const move = (ev) => onDragRef.current(idx, ev.clientX);
+    const stop = () => {
       window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointerup", stop);
+      window.removeEventListener("pointercancel", stop);
     };
     window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", up);
+    window.addEventListener("pointerup", stop);
+    window.addEventListener("pointercancel", stop);
   };
 
   return (

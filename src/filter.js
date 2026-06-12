@@ -1,4 +1,4 @@
-// Pure option filter for the Combobox — matches query against label, value and hint.
+/** Pure option filter for the Combobox — matches query against label, value and hint. */
 export function filterOptions(options, query) {
   const s = query.trim().toLowerCase();
   if (!s) return options;

@@ -1,14 +1,17 @@
-// Availability-tier buckets with drag-and-drop. Edits are staged in a local draft and
-// only committed to the app when you press "Save changes".
-//  • drag a member's grip (⠿) to reorder within a bucket or move between buckets
-//  • drag a bucket's hamburger (☰) to reorder buckets
-//  • click a member's name to make them this week's reader for that bucket (live)
 import { useState, useEffect, useRef } from "react";
+import { DEFAULT_WEIGHT } from "../constants.js";
 
 let _seq = 0;
 const newId = () => `b${Date.now().toString(36)}${(_seq++).toString(36)}`;
 const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
+/**
+ * Availability-tier buckets with drag-and-drop. Edits are staged in a local
+ * draft and only committed when "Save changes" is pressed.
+ * - drag a member's grip (⠿) to reorder within a bucket or move between buckets
+ * - drag a bucket's hamburger (☰) to reorder buckets
+ * - click a member's name to make them this week's reader for that bucket (live)
+ */
 export function BucketEditor({ config, setConfig, readersByBucket, setReaderForBucket, bucketsOff = {}, toggleBucket, hasOverrides, clearOverrides }) {
   const [draft, setDraft] = useState({ buckets: config.buckets, weights: config.weights });
   const [dirty, setDirty] = useState(false);
@@ -44,7 +47,7 @@ export function BucketEditor({ config, setConfig, readersByBucket, setReaderForB
     const name = newName.trim();
     if (!cancelAddRef.current && name) {
       const buckets = draft.buckets.map((b, i) => (i === bi ? { ...b, members: [...b.members, name] } : b));
-      const weights = draft.weights[name] == null ? { ...draft.weights, [name]: 5 } : draft.weights;
+      const weights = draft.weights[name] == null ? { ...draft.weights, [name]: DEFAULT_WEIGHT } : draft.weights;
       apply({ buckets, weights });
     }
     cancelAddRef.current = false;
@@ -61,7 +64,7 @@ export function BucketEditor({ config, setConfig, readersByBucket, setReaderForB
     let ti = toIndex;
     if (from.bi === toBi && from.index < toIndex) ti -= 1;
     buckets[toBi].members.splice(ti, 0, m);
-    const weights = draft.weights[m] == null ? { ...draft.weights, [m]: 5 } : draft.weights;
+    const weights = draft.weights[m] == null ? { ...draft.weights, [m]: DEFAULT_WEIGHT } : draft.weights;
     apply({ buckets, weights });
   };
   const moveBucket = (fromIdx, toIdx) => {
@@ -140,7 +143,7 @@ export function BucketEditor({ config, setConfig, readersByBucket, setReaderForB
                       : "On this week. Click to skip — it won't read and won't advance to the next reader."}>
               {off ? "Off" : "On"}
             </button>
-            <div className="row chips" style={{ flex: 1, gap: 6 }}>
+            <div className="row chips">
               {b.members.map((m, idx) => {
                 const isReader = m === reader;
                 const isDragging = drag?.kind === "member" && drag.bi === bi && drag.index === idx;
@@ -157,10 +160,10 @@ export function BucketEditor({ config, setConfig, readersByBucket, setReaderForB
                     <span className="mName" onClick={() => setReaderForBucket(b.id, m)}
                           title="Use as this week's reader">{m}</span>
                     {isReader && <span className="tag next">reads</span>}
-                    <input type="range" min="1" max="10" value={draft.weights[m] ?? 5}
-                           title={`weight ${draft.weights[m] ?? 5}`}
+                    <input type="range" min="1" max="10" value={draft.weights[m] ?? DEFAULT_WEIGHT}
+                           title={`weight ${draft.weights[m] ?? DEFAULT_WEIGHT}`}
                            onChange={(e) => setWeight(m, +e.target.value)} />
-                    <b className="stat">{draft.weights[m] ?? 5}</b>
+                    <b className="stat">{draft.weights[m] ?? DEFAULT_WEIGHT}</b>
                     <span className="x" onClick={() => removeMember(bi, m)} title="Remove">×</span>
                   </span>
                 );
@@ -194,12 +197,12 @@ export function BucketEditor({ config, setConfig, readersByBucket, setReaderForB
         <span className="spacer" />
         {dirty || hasOverrides ? (
           <>
-            <span className="warn" style={{ fontSize: 12 }}>● {dirty ? "Unsaved changes" : "Reader override set"}</span>
+            <span className="warn">● {dirty ? "Unsaved changes" : "Reader override set"}</span>
             <button className="sm" onClick={discard}>Discard</button>
             {dirty && <button className="sm primary" onClick={save}>Save changes</button>}
           </>
         ) : (
-          <span className="muted" style={{ fontSize: 12 }}>All changes saved</span>
+          <span className="muted">All changes saved</span>
         )}
       </div>
     </div>

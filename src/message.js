@@ -1,7 +1,7 @@
 // Formatting helpers and the WhatsApp message builder.
 import { surahName, quranLink, READING_WPM } from "./constants.js";
 
-// Rough aloud-reading time for a word count, e.g. "~8 min" or "~1 h 5 min".
+/** Rough aloud-reading time for a word count, e.g. "~8 min" or "~1 h 5 min". */
 export function readingTime(words, wpm = READING_WPM) {
   const min = Math.max(1, Math.round(words / wpm));
   if (min < 60) return `~${min} min`;
@@ -9,11 +9,13 @@ export function readingTime(words, wpm = READING_WPM) {
   return m ? `~${h} h ${m} min` : `~${h} h`;
 }
 
-// Human description of a reader's portion, with WhatsApp-bold (*…*) start/end anchors.
-// `prev` is the previous reader (for continuity). The start anchor is the ayah number when
-// the reader begins cleanly at a fresh ayah, or the first section's title when they pick up
-// partway through an ayah-block that's shared with the previous reader. A single section is
-// just named outright.
+/**
+ * Human description of a reader's portion, with WhatsApp-bold (*…*) start/end anchors.
+ * `prev` is the previous reader (for continuity). The start anchor is the ayah number when
+ * the reader begins cleanly at a fresh ayah, or the first section's title when they pick up
+ * partway through an ayah-block that's shared with the previous reader. A single section is
+ * just named outright.
+ */
 export function describe(a, prev) {
   if (!a.sections.length) return "(no sections assigned)";
   const firstTitle = a.sections[0].title;
@@ -25,11 +27,13 @@ export function describe(a, prev) {
   return `Start of *${startAnchor}* till the end of *${lastTitle}*`;
 }
 
+/** Compact ayah range for an assignment, e.g. "Ayat 130" or "Ayat 130-142". */
 export function ayahRange(a) {
   if (a.ayahStart == null) return "—";
   return a.ayahStart === a.ayahEnd ? `Ayat ${a.ayahStart}` : `Ayat ${a.ayahStart}-${a.ayahEnd}`;
 }
 
+/** The full WhatsApp message: intro, one line + link per reader, outro. */
 export function generateMessage(surah, assignments, templates) {
   const intro = templates.intro.replace(/\{surah\}/g, `Surah ${surahName(surah)}`);
   const active = assignments.filter((a) => a.sections.length);

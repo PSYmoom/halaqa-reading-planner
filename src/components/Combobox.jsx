@@ -1,9 +1,11 @@
-// Searchable, scrollable, keyboard-navigable select.
-// options: [{ value, label, hint?, key? }]. Filters on label, value and hint.
-// allowNumber + onNumber lets the user commit a typed number with no matching option.
 import { useState, useRef, useMemo, useEffect } from "react";
 import { filterOptions } from "../filter.js";
 
+/**
+ * Searchable, scrollable, keyboard-navigable select.
+ * `options`: [{ value, label, hint?, key? }] — filtered on label, value and hint.
+ * `allowNumber` + `onNumber` let the user commit a typed number with no matching option.
+ */
 export function Combobox({ options, display, placeholder, onSelect, allowNumber, onNumber }) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
