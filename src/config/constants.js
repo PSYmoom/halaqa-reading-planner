@@ -10,7 +10,8 @@ export const CDNS = [
   (s) => `https://raw.githubusercontent.com/spa5k/tafsir_api/main/tafsir/${EDITION}/${s}.json`,
 ];
 
-export const quranLink = (surah, ayah) => `https://quran.com/${surah}:${ayah}/tafsirs/${EDITION}`;
+export const tafsirLink = (surah, ayah) =>
+  `https://www.alim.org/quran/tafsir/ibn-kathir/surah/${surah}/${ayah}/`;
 
 export const SURAH_NAMES = [
   "Al-Fatihah",
@@ -145,8 +146,7 @@ export const COLORS = [
   "#8fae6b",
 ];
 
-// Approximate words-per-minute for reading the tafsir ALOUD in the halaqa (slower than silent reading; tafsir mixes English prose with Arabic quotes).
-export const READING_WPM = 150;
+export const READING_WPM = 60;
 
 // Range of the weekly word-budget slider
 export const WORD_BUDGET = { MIN: 500, MAX: 14000 };
@@ -177,10 +177,13 @@ export const DEFAULT_CONFIG = {
   weights: { Ahmad: 10, Bilal: 7, Yusuf: 6, Khalid: 6, Hamza: 3, Idris: 1, Anas: 2 },
   surah: 3,
   startAyah: 130,
-  wordBudget: 6000,
+  wordBudget: 3600,
+  readingWpm: READING_WPM,
+  budgetMin: WORD_BUDGET.MIN,
+  budgetMax: WORD_BUDGET.MAX,
   templates: {
     intro:
-      "Assalamualaikum everyone,\n\nJazakAllah for joining last Saturday's halaqa — MashAllah, everyone did a great job! If you missed it, please try to record your part.\n\nHere is the reading list for next week ({surah}). Tap your link to read Tafsir Ibn Kathir on Quran.com:",
+      "Assalamualaikum everyone,\n\nJazakAllah for joining last Saturday's halaqa — MashAllah, everyone did a great job! If you missed it, please try to record your part.\n\nHere is the reading list for next week ({surah}). Tap your link to read Tafsir Ibn Kathir on Alim.org:",
     outro:
       "Insha'Allah we will meet next Saturday at 10:30am EST. JazakAllah for your participation!",
   },

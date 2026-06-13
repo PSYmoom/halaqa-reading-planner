@@ -1,4 +1,4 @@
-import { Fragment, useRef, useMemo, useEffect, useCallback } from "react";
+import { useRef, useMemo, useEffect, useCallback } from "react";
 import { COLORS } from "../config/constants.js";
 import { ayahRange, sectionHeading } from "../utils/message.js";
 
@@ -11,6 +11,9 @@ export function SplitBar({ weekSections, assignments, splits, setSplits }) {
     return p;
   }, [weekSections]);
   const total = pre[pre.length - 1] || 1;
+
+  const bounds = useMemo(() => [0, ...splits, weekSections.length], [splits, weekSections.length]);
+  const pctAt = (sectionIdx) => (pre[sectionIdx] / total) * 100;
 
   const onDrag = useCallback(
     (idx, clientX) => {
@@ -64,35 +67,33 @@ export function SplitBar({ weekSections, assignments, splits, setSplits }) {
   return (
     <div className="bar" ref={ref}>
       {assignments.map((a, i) => {
-        const pct = (a.words / total) * 100;
+        const left = pctAt(bounds[i]);
+        const pct = pctAt(bounds[i + 1]) - left;
         return (
-          <Fragment key={a.name}>
-            <div
-              className="seg"
-              style={{ width: pct + "%", background: COLORS[i % COLORS.length] }}
-              title={`${a.name}: ${a.words} words, ${a.sections.length} sections`}
-            >
-              {pct > 8 && (
-                <span className="segLabel">
-                  <b>{a.name}</b>
-                  {pct > 15 && <em>{a.words}w</em>}
-                </span>
-              )}
-            </div>
-            {i < assignments.length - 1 && (
-              <div
-                className="handle"
-                onPointerDown={startDrag(i)}
-                title="Drag to move sections between people"
-              />
+          <div
+            key={a.name}
+            className="seg"
+            style={{ left: left + "%", width: pct + "%", background: COLORS[i % COLORS.length] }}
+            title={`${a.name}: ${a.words} words, ${a.sections.length} sections`}
+          >
+            {pct > 8 && (
+              <span className="segLabel">
+                <b>{a.name}</b>
+                {pct > 15 && <em>{a.words}w</em>}
+              </span>
             )}
-          </Fragment>
+          </div>
         );
       })}
-      {/* Section structure, integrated into the same bar as marks hanging from
-          the top edge: a tall bright tick where each subheading begins, a short
-          faint tick for a translation run. Each transparent cell also carries
-          the per-section tooltip, so dragging a divider isn't guesswork. */}
+      {splits.map((s, i) => (
+        <div
+          key={i}
+          className="handle"
+          style={{ left: pctAt(s) + "%" }}
+          onPointerDown={startDrag(i)}
+          title="Drag to move sections between people"
+        />
+      ))}
       <div className="secOverlay">
         {weekSections.map((s, i) => {
           const heading = sectionHeading(s);

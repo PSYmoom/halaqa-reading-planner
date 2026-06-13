@@ -15,10 +15,10 @@ function groupByRange(sections) {
 }
 
 // One reader's portion: name, totals, and the sections it spans.
-function AssignmentRow({ assignment, color }) {
+function AssignmentRow({ assignment, color, wpm }) {
   const meta =
     `· ${ayahRange(assignment)} · ${assignment.words.toLocaleString()} words` +
-    ` · ${readingTime(assignment.words)} · ${assignment.sections.length} section(s)`;
+    ` · ${readingTime(assignment.words, wpm)} · ${assignment.sections.length} section(s)`;
   return (
     <div className="member">
       <div className="head">
@@ -44,7 +44,7 @@ function AssignmentRow({ assignment, color }) {
 }
 
 /** The split view — the draggable divider bar plus per-reader assignment details. */
-export function SplitPanel({ week }) {
+export function SplitPanel({ week, wpm }) {
   const { weekSections, assignments, splits, setSplits, manualSplits, resetSplits } = week;
 
   return (
@@ -80,7 +80,12 @@ export function SplitPanel({ week }) {
           </div>
           <div className="assignmentList">
             {assignments.map((a, i) => (
-              <AssignmentRow key={a.name} assignment={a} color={COLORS[i % COLORS.length]} />
+              <AssignmentRow
+                key={a.name}
+                assignment={a}
+                color={COLORS[i % COLORS.length]}
+                wpm={wpm}
+              />
             ))}
           </div>
         </>

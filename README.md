@@ -1,6 +1,6 @@
 # Halaqa Reading Planner
 
-Builds the weekly **Tafsir Ibn Kathir** reading-assignment message for your halaqa — sized by each person's availability, rotated across teams, formatted for WhatsApp with a Quran.com link per reader.
+Builds the weekly **Tafsir Ibn Kathir** reading-assignment message for your halaqa — sized by each person's availability, rotated across teams, formatted for WhatsApp with an Alim.org link per reader.
 
 ## Quick start
 
@@ -24,7 +24,7 @@ For live development: `npm run dev` (server at http://localhost:5173).
 
 ## Notes
 
-- Tafsir from [spa5k/tafsir_api](https://github.com/spa5k/tafsir_api) (`en-tafisr-ibn-kathir`) via jsDelivr (GitHub-raw fallback). Navigation is the per-reader Quran.com link.
+- Tafsir from [spa5k/tafsir_api](https://github.com/spa5k/tafsir_api) (`en-tafisr-ibn-kathir`) via jsDelivr (GitHub-raw fallback). Navigation is the per-reader [Alim.org](https://www.alim.org) link.
 - Section detection is heuristic — if a heading is mis-split, drag the divider before copying.
 - Settings live in **localStorage, per browser**; use **Export / Import config** to move them.
 - `src/engine.js` is pure functions (no React), so the core logic is easy to test in Node.

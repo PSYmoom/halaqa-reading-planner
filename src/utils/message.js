@@ -1,5 +1,5 @@
 // Formatting helpers and the WhatsApp message builder.
-import { surahName, quranLink, READING_WPM } from "../config/constants.js";
+import { surahName, tafsirLink, READING_WPM } from "../config/constants.js";
 
 /** Rough aloud-reading time for a word count, e.g. "~8 min" or "~1 h 5 min". */
 export function readingTime(words, wpm = READING_WPM) {
@@ -45,7 +45,7 @@ export function generateMessage(surah, assignments, templates) {
   const intro = templates.intro.replace(/\{surah\}/g, `Surah ${surahName(surah)}`);
   const active = assignments.filter((a) => a.sections.length);
   const lines = active.map(
-    (a, i) => `- ${a.name}: ${describe(a, active[i - 1])}\n  ${quranLink(surah, a.ayahStart)}`,
+    (a, i) => `- ${a.name}: ${describe(a, active[i - 1])}\n  ${tafsirLink(surah, a.ayahStart)}`,
   );
   return [intro, "", ...lines, "", templates.outro].join("\n");
 }

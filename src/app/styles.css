@@ -4,29 +4,40 @@
    Rub-el-Hizb (۞) eight-point-star lattice. Dense for 1080p.
    ════════════════════════════════════════════════════════════════ */
 :root {
+  /* Brand hues as raw RGB channels, so any rule can mix its own alpha via
+     rgb(var(--x-rgb) / .NN). One source of truth — named tokens derive from
+     these, and translucent accents can't drift from the solid color. */
+  --gold-rgb: 204 169 79;          /* gold leaf */
+  --gold-bright-rgb: 236 206 126;
+  --gold-deep-rgb: 160 125 47;
+  --accent-rgb: 63 174 147;        /* jade — "active / this week" */
+  --warn-rgb: 217 164 65;
+  --danger-rgb: 207 106 91;
+  --text-rgb: 239 229 208;         /* warm parchment */
+
   --bg: #0a1620;          /* deep lapis night */
   --bg-2: #0c1a26;
   --panel: #11212e;       /* card */
   --panel2: #16293650;    /* input wells (translucent) */
   --panel2-solid: #16262f;
   --line: #2b3e4b;        /* hairline (lifted for card separation) */
-  --line-gold: rgba(201, 162, 75, .36);
+  --line-gold: rgb(var(--gold-rgb) / .36);
 
-  --gold: #cca94f;        /* gold leaf */
-  --gold-bright: #ecce7e;
-  --gold-deep: #a07d2f;
+  --gold: rgb(var(--gold-rgb));
+  --gold-bright: rgb(var(--gold-bright-rgb));
+  --gold-deep: rgb(var(--gold-deep-rgb));
 
-  --text: #efe5d0;        /* warm parchment */
+  --text: rgb(var(--text-rgb));
   --muted: #aab6b1;       /* slate-sage (lifted for legibility) */
   --faint: #859390;       /* dim (lifted) */
 
-  --accent: #3fae93;      /* jade — "active / this week" */
+  --accent: rgb(var(--accent-rgb));
   --accent-deep: #2c8c76;
   --accent2: #6aa6c8;     /* lapis — links/info */
-  --warn: #d9a441;
-  --danger: #cf6a5b;
+  --warn: rgb(var(--warn-rgb));
+  --danger: rgb(var(--danger-rgb));
 
-  --ring: 0 0 0 3px rgba(201, 162, 75, .16);
+  --ring: 0 0 0 3px rgb(var(--gold-rgb) / .16);
   --shadow: 0 10px 30px -12px rgba(0, 0, 0, .7);
 }
 
@@ -42,8 +53,8 @@ body {
   line-height: 1.5;
   letter-spacing: .005em;
   background:
-    radial-gradient(1000px 520px at 8% -12%, rgba(201, 162, 75, .12), transparent 60%),
-    radial-gradient(880px 620px at 104% 112%, rgba(63, 174, 147, .10), transparent 55%),
+    radial-gradient(1000px 520px at 8% -12%, rgb(var(--gold-rgb) / .12), transparent 60%),
+    radial-gradient(880px 620px at 104% 112%, rgb(var(--accent-rgb) / .10), transparent 55%),
     linear-gradient(180deg, var(--bg-2), var(--bg));
   background-attachment: fixed;
 }
@@ -98,7 +109,7 @@ h2::before {
   display: flex; align-items: center; justify-content: space-between;
   padding: 8px 6px 20px;
   border-bottom: 1px solid var(--line-gold);
-  box-shadow: 0 3px 0 -0.5px rgba(204, 169, 79, .15);   /* second hairline → double rule */
+  box-shadow: 0 3px 0 -0.5px rgb(var(--gold-rgb) / .15);   /* second hairline → double rule */
   position: relative;
   animation: rise .6s ease both;
 }
@@ -106,15 +117,15 @@ h2::before {
   content: "۞";
   position: absolute; left: 50%; bottom: -10px; transform: translateX(-50%);
   color: var(--gold); background: var(--bg); padding: 0 12px; font-size: 14px;
-  text-shadow: 0 0 14px rgba(204, 169, 79, .45);
+  text-shadow: 0 0 14px rgb(var(--gold-rgb) / .45);
 }
 .brand { display: flex; align-items: center; gap: 18px; }
 .ornament {
   width: 54px; height: 54px; flex: none; display: grid; place-items: center;
   font-size: 25px; line-height: 1; color: var(--gold);
   border: 1px solid var(--line-gold); border-radius: 50%;
-  box-shadow: inset 0 0 20px rgba(204, 169, 79, .14), 0 0 26px -4px rgba(204, 169, 79, .28);
-  text-shadow: 0 0 14px rgba(204, 169, 79, .4);
+  box-shadow: inset 0 0 20px rgb(var(--gold-rgb) / .14), 0 0 26px -4px rgb(var(--gold-rgb) / .28);
+  text-shadow: 0 0 14px rgb(var(--gold-rgb) / .4);
   animation: glow 6s ease-in-out infinite;
 }
 .brandText { display: flex; flex-direction: column; gap: 2px; }
@@ -122,7 +133,7 @@ h2::before {
 .sub { color: var(--muted); font-size: 12.5px; letter-spacing: .02em; }
 .wordmark {
   font-family: "Amiri", serif; font-size: 42px; color: var(--gold);
-  opacity: .92; line-height: 1; text-shadow: 0 0 22px rgba(204, 169, 79, .28);
+  opacity: .92; line-height: 1; text-shadow: 0 0 22px rgb(var(--gold-rgb) / .28);
 }
 .lede { color: var(--muted); margin: 16px 0 18px; font-size: 13.5px; }
 
@@ -138,7 +149,7 @@ h2::before {
 .budgetHint { justify-content: space-between; font-size: 11.5px; margin-top: 1px; }
 
 /* Custom budget slider */
-.budgetSlider { position: relative; }
+.budgetSlider { position: relative; --thumb: 16px; }   /* thumb size + tick inset derive from this — see .budgetTicks */
 .budgetSlider input[type="range"] {
   -webkit-appearance: none; appearance: none;
   position: relative; z-index: 1;            /* above the ticks, so the thumb covers them */
@@ -146,19 +157,19 @@ h2::before {
   width: 100%; height: 22px; margin: 0; background: transparent; cursor: pointer;
 }
 .budgetSlider input[type="range"]::-webkit-slider-runnable-track {
-  height: 3px; border-radius: 2px; background: rgba(239, 229, 208, .32);
+  height: 3px; border-radius: 2px; background: rgb(var(--text-rgb) / .32);
 }
 .budgetSlider input[type="range"]::-moz-range-track {
-  height: 3px; border-radius: 2px; background: rgba(239, 229, 208, .32);
+  height: 3px; border-radius: 2px; background: rgb(var(--text-rgb) / .32);
 }
 .budgetSlider input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none; appearance: none;
-  width: 16px; height: 16px; margin-top: -6.5px; border-radius: 50%;   /* centre on the 3px rail */
+  width: var(--thumb); height: var(--thumb); margin-top: calc((3px - var(--thumb)) / 2); border-radius: 50%;   /* centre on the 3px rail */
   background: radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold-deep));
   box-shadow: 0 0 0 1px var(--gold-deep), 0 1px 4px rgba(0, 0, 0, .5);
 }
 .budgetSlider input[type="range"]::-moz-range-thumb {
-  width: 16px; height: 16px; border: none; border-radius: 50%;
+  width: var(--thumb); height: var(--thumb); border: none; border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold-deep));
   box-shadow: 0 0 0 1px var(--gold-deep), 0 1px 4px rgba(0, 0, 0, .5);
 }
@@ -166,17 +177,21 @@ h2::before {
    the whole slider box — focus shows on the thumb only (below). */
 .budgetSlider input[type="range"]:focus { outline: none; box-shadow: none; }
 .budgetSlider input[type="range"]:focus::-webkit-slider-thumb {
-  box-shadow: 0 0 0 1px var(--gold-deep), 0 0 0 4px rgba(201, 162, 75, .25);
+  box-shadow: 0 0 0 1px var(--gold-deep), 0 0 0 4px rgb(var(--gold-rgb) / .25);
 }
 .budgetSlider input[type="range"]:focus::-moz-range-thumb {
-  box-shadow: 0 0 0 1px var(--gold-deep), 0 0 0 4px rgba(201, 162, 75, .25);
+  box-shadow: 0 0 0 1px var(--gold-deep), 0 0 0 4px rgb(var(--gold-rgb) / .25);
 }
 
-/* Section notches on the rail */
-.budgetTicks { position: absolute; inset: 0 8px; pointer-events: none; z-index: 0; }
+/* Section notches on the rail. A native range thumb is inset by half its width
+   at each end (so it never overhangs the track): its centre travels the range
+   [thumb/2 … width − thumb/2], NOT [0 … width]. To put a tick under the thumb
+   that lands on it, inset this layer by that same half-thumb, then place each
+   tick at left:%. Both sides scale off --thumb, so they align at any width/zoom. */
+.budgetTicks { position: absolute; inset: 0 calc(var(--thumb) / 2); pointer-events: none; z-index: 0; }
 .budgetTick { position: absolute; top: 50%; transform: translate(-50%, -50%); border-radius: 1px; }
 .budgetTick.plain {                 /* translation — primary, pokes past the thumb */
-  width: 2px; height: 22px; background: var(--gold-bright); box-shadow: 0 0 6px rgba(231, 200, 120, .55);
+  width: 2px; height: 22px; background: var(--gold-bright); box-shadow: 0 0 6px rgb(var(--gold-bright-rgb) / .55);
 }
 .budgetTick.headed {                /* subheading — secondary, shorter than the thumb */
   width: 2px; height: 11px; background: var(--gold-deep);
@@ -200,8 +215,8 @@ h2::before {
 .card::before { top: 7px; left: 7px; border-top: 1px solid var(--gold); border-left: 1px solid var(--gold); border-top-left-radius: 5px; }
 .card::after  { bottom: 7px; right: 7px; border-bottom: 1px solid var(--gold); border-right: 1px solid var(--gold); border-bottom-right-radius: 5px; }
 .grid > .card:nth-child(2) { animation-delay: .06s; }
-/* templates & backup — full-width band below the two columns */
-.templatesCard { margin-top: 16px; }
+/* settings — full-width band below the two columns */
+.settingsCard { margin-top: 16px; }
 
 .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .spacer { flex: 1; }
@@ -228,7 +243,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--g
 ::placeholder { color: var(--faint); }
 
 textarea {
-  min-height: 188px; resize: vertical;
+  min-height: 188px; resize: none;
   font: 12.5px/1.6 "Spline Sans Mono", ui-monospace, Consolas, monospace;
   letter-spacing: -.01em; color: #f1e8d6;
 }
@@ -247,7 +262,7 @@ button:active { transform: translateY(1px); }
 button.primary {
   background: linear-gradient(180deg, var(--gold-bright), var(--gold));
   color: #2a2008; border-color: var(--gold); font-weight: 700; letter-spacing: .01em;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), 0 6px 18px -6px rgba(201, 162, 75, .5);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35), 0 6px 18px -6px rgb(var(--gold-rgb) / .5);
 }
 button.primary:hover { filter: brightness(1.06); border-color: var(--gold-bright); }
 button.ghost { background: transparent; border-color: transparent; color: var(--muted); }
@@ -256,24 +271,24 @@ button.sm { padding: 3px 9px; font-size: 12px; }
 
 /* ── Pills & tags ───────────────────────────────────────────── */
 .pill {
-  background: rgba(201, 162, 75, .07); border: 1px solid var(--line-gold);
+  background: rgb(var(--gold-rgb) / .07); border: 1px solid var(--line-gold);
   border-radius: 999px; padding: 3px 11px; font-size: 12px; color: var(--muted);
 }
-.pill.warn { border-color: rgba(217, 164, 65, .5); color: var(--warn); background: rgba(217, 164, 65, .08); }
+.pill.warn { border-color: rgb(var(--warn-rgb) / .5); color: var(--warn); background: rgb(var(--warn-rgb) / .08); }
 .tag { font-size: 10.5px; padding: 1.5px 8px; border-radius: 999px; background: var(--accent2); color: #06131c; font-weight: 600; }
 .tag.next {
   background: linear-gradient(180deg, #4fc4a6, var(--accent)); color: #04140f;
-  box-shadow: 0 0 0 1px rgba(63, 174, 147, .4), 0 0 14px rgba(63, 174, 147, .3);
+  box-shadow: 0 0 0 1px rgb(var(--accent-rgb) / .4), 0 0 14px rgb(var(--accent-rgb) / .3);
 }
 
 /* ── Split bar ──────────────────────────────────────────────── */
 .bar {
-  display: flex; height: 46px; border-radius: 9px; overflow: hidden;
+  height: 46px; border-radius: 9px; overflow: hidden;
   border: 1px solid var(--line-gold); position: relative; user-select: none;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 4px 14px -8px #000;
 }
 .seg {
-  position: relative; display: flex; align-items: center; justify-content: center;
+  position: absolute; top: 0; bottom: 0; display: flex; align-items: center; justify-content: center;
   overflow: hidden; color: #0c1410; white-space: nowrap;
   background-image: linear-gradient(180deg, rgba(255, 255, 255, .22), rgba(0, 0, 0, .12));
   background-blend-mode: overlay;
@@ -287,30 +302,33 @@ button.sm { padding: 3px 9px; font-size: 12px; }
 .segLabel em { font-style: normal; font-weight: 600; font-size: 11px; opacity: .68; font-variant-numeric: tabular-nums; }
 .seg:hover { filter: brightness(1.12) saturate(1.05); }
 /* wide, forgiving grab target centred on the boundary; the gold line stays slim */
-.handle { width: 20px; margin: 0 -10px; cursor: ew-resize; z-index: 3; position: relative; touch-action: none; }
+.handle {
+  position: absolute; top: 0; bottom: 0; width: 20px; transform: translateX(-50%);
+  cursor: ew-resize; z-index: 3; touch-action: none;
+}
 .handle::after {
   content: ""; position: absolute; top: 6px; bottom: 6px; left: 9px; width: 2px;
-  background: var(--gold-bright); border-radius: 2px; box-shadow: 0 0 8px rgba(231, 200, 120, .7);
+  background: var(--gold-bright); border-radius: 2px; box-shadow: 0 0 8px rgb(var(--gold-bright-rgb) / .7);
   transition: box-shadow .12s, top .12s, bottom .12s;
 }
-.handle:hover::after, .handle:active::after { top: 3px; bottom: 3px; box-shadow: 0 0 12px rgba(231, 200, 120, .95); }
+.handle:hover::after, .handle:active::after { top: 3px; bottom: 3px; box-shadow: 0 0 12px rgb(var(--gold-bright-rgb) / .95); }
 .secOverlay { position: absolute; inset: 0; z-index: 2; }
 .secCell { position: absolute; top: 0; bottom: 0; transition: background-color .12s; }
 .secCell::before {
-  content: ""; position: absolute; top: 0; left: 0;
+  content: ""; position: absolute; top: 0; left: 0; transform: translateX(-50%);
 }
 .secCell.plain::before {
   width: 2px; height: 16px; border-radius: 0 0 2px 2px;
-  background: var(--gold-bright); box-shadow: 0 0 7px rgba(231, 200, 120, .65);
+  background: var(--gold-bright); box-shadow: 0 0 7px rgb(var(--gold-bright-rgb) / .65);
 }
 .secCell.plain::after {
-  content: ""; position: absolute; top: 0; left: 1px; transform: translateX(-50%);
+  content: ""; position: absolute; top: 0; left: 0; transform: translateX(-50%);
   width: 5px; height: 5px; border-radius: 50%;
-  background: var(--gold-bright); box-shadow: 0 0 6px rgba(231, 200, 120, .8);
+  background: var(--gold-bright); box-shadow: 0 0 6px rgb(var(--gold-bright-rgb) / .8);
 }
 .secCell.headed::before {
   width: 2px; height: 9px; border-radius: 0 0 2px 2px;
-  background: var(--gold-deep); box-shadow: 0 0 4px rgba(160, 125, 47, .5);
+  background: var(--gold-deep); box-shadow: 0 0 4px rgb(var(--gold-deep-rgb) / .5);
 }
 .secCell.first::before, .secCell.first::after { left: 2px; }
 .secCell:hover { background-color: rgba(255, 255, 255, .05); }
@@ -319,7 +337,7 @@ button.sm { padding: 3px 9px; font-size: 12px; }
 .output {
   margin-top: 16px;
   border-color: var(--line-gold);
-  box-shadow: inset 0 0 0 1px rgba(201, 162, 75, .08), 0 16px 44px -18px rgba(0, 0, 0, .85), 0 0 60px -30px rgba(201, 162, 75, .55);
+  box-shadow: inset 0 0 0 1px rgb(var(--gold-rgb) / .08), 0 16px 44px -18px rgba(0, 0, 0, .85), 0 0 60px -30px rgb(var(--gold-rgb) / .55);
 }
 .outputGrid { display: grid; grid-template-columns: 1fr 268px; gap: 20px; align-items: stretch; }
 @media (max-width: 880px) { .outputGrid { grid-template-columns: 1fr; } }
@@ -327,15 +345,48 @@ button.sm { padding: 3px 9px; font-size: 12px; }
 .outputHead { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
 .outputHead h2 { margin: 0; }
 .outputMeta { font-size: 12px; color: var(--muted); letter-spacing: .02em; }
-.outputMain textarea { flex: 1; min-height: 212px; margin: 0; }
+.previewBox { flex: 1; min-height: 212px; margin: 0; }
+
+/* Edit text — a quiet gold link in the header that fills in when active */
+.editToggle {
+  margin-left: auto; align-self: center;
+  background: transparent; border: 1px solid transparent; border-radius: 999px;
+  padding: 3px 11px; color: var(--gold);
+  font-size: 11px; text-transform: uppercase; letter-spacing: .1em;
+}
+.editToggle:hover {
+  color: var(--gold-bright); border-color: var(--line-gold);
+  background: rgb(var(--gold-rgb) / .07);
+}
+.editToggle.active {
+  color: #2a2008; font-weight: 700; border-color: var(--gold);
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35);
+}
+
+/* Edit mode: intro / [generated body] / outro share the preview's frame */
+.templateEditor { display: flex; flex-direction: column; flex: 1; min-width: 0; animation: rise .2s ease both; }
+.tmplLabel { font-size: 12px; color: var(--muted); margin-bottom: 5px; letter-spacing: .03em; }
+.introBox { min-height: 104px; }
+.outroBox { min-height: 64px; margin-top: 4px; }
+/* ghosted stand-in for the auto-generated reading list, between the two rules */
+.tmplDivider { display: flex; align-items: center; gap: 12px; margin: 14px 2px; }
+.tmplDivider::before, .tmplDivider::after {
+  content: ""; flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--line-gold), transparent);
+}
+.tmplDivider span {
+  font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--faint); white-space: nowrap;
+}
+.tmplDivider i { color: var(--gold); font-style: normal; opacity: .75; margin-right: 2px; }
 .outputSide { display: flex; flex-direction: column; gap: 10px; }
 .primary.big { width: 100%; padding: 13px 14px; font-size: 15.5px; border-radius: 10px; }
 .markBtn { width: 100%; transition: border-color .15s, background .15s, box-shadow .15s, transform .05s; }
 .btnIcon { margin-right: .42em; }
 .markBtn:hover {
   border-color: var(--accent);
-  background: rgba(63, 174, 147, .12);
-  box-shadow: 0 0 0 1px rgba(63, 174, 147, .3), 0 0 16px -6px rgba(63, 174, 147, .55);
+  background: rgb(var(--accent-rgb) / .12);
+  box-shadow: 0 0 0 1px rgb(var(--accent-rgb) / .3), 0 0 16px -6px rgb(var(--accent-rgb) / .55);
 }
 .outputNote { font-size: 11.5px; line-height: 1.45; margin: 2px 0 0; }
 .nextNote { margin-top: auto; padding-top: 11px; border-top: 1px dashed var(--line); font-size: 12.5px; color: var(--muted); }
@@ -358,13 +409,13 @@ button.sm { padding: 3px 9px; font-size: 12px; }
 
 .bucketRow { display: flex; align-items: center; gap: 8px; padding: 9px 6px; border-top: 1px dashed var(--line); border-radius: 9px; transition: background .12s, box-shadow .12s; }
 .bucketRow:first-of-type { border-top: none; }
-.bucketRow.overBucket { background: rgba(201, 162, 75, .08); box-shadow: inset 0 0 0 1px var(--line-gold); }
+.bucketRow.overBucket { background: rgb(var(--gold-rgb) / .08); box-shadow: inset 0 0 0 1px var(--line-gold); }
 .bucketRow.off .chips, .bucketRow.off .bhandle { opacity: .42; }
 .bucketToggle {
   flex: none; padding: 2px 11px; font-size: 10.5px; font-weight: 700;
   letter-spacing: .08em; text-transform: uppercase; border-radius: 999px;
   border: 1px solid var(--accent); color: var(--accent);
-  background: rgba(63, 174, 147, .1);
+  background: rgb(var(--accent-rgb) / .1);
 }
 .bucketToggle:hover { border-color: var(--accent); filter: brightness(1.12); }
 .bucketToggle.isOff { border-color: var(--line); color: var(--faint); background: transparent; }
@@ -378,7 +429,7 @@ button.sm { padding: 3px 9px; font-size: 12px; }
   border-radius: 999px; padding: 2px 6px 2px 4px; font-size: 13px;
   transition: border-color .15s, box-shadow .15s, opacity .12s;
 }
-.memberChip.reader { border-color: var(--accent); box-shadow: 0 0 0 1px rgba(63, 174, 147, .25); }
+.memberChip.reader { border-color: var(--accent); box-shadow: 0 0 0 1px rgb(var(--accent-rgb) / .25); }
 .memberChip.dragging { opacity: .35; }
 .memberChip.dropBefore { box-shadow: -3px 0 0 0 var(--gold-bright); }
 .memberChip input[type=range] { width: 60px; accent-color: var(--accent); }
@@ -387,7 +438,7 @@ button.sm { padding: 3px 9px; font-size: 12px; }
 .mName { cursor: pointer; padding: 0 1px; }
 .mName:hover { color: var(--gold-bright); }
 .dropEnd { display: inline-flex; align-items: center; min-width: 30px; padding: 0 2px; border-radius: 999px; }
-.dropEnd:hover { background: rgba(201, 162, 75, .04); }
+.dropEnd:hover { background: rgb(var(--gold-rgb) / .04); }
 .dropEnd.dropBefore { box-shadow: -3px 0 0 0 var(--gold-bright); }   /* "insert at end" marker */
 .addMember { width: 134px; padding: 3px 11px; font-size: 13px; border-radius: 999px; border-color: var(--gold-deep); }
 .x { cursor: pointer; color: var(--faint); padding: 0 4px; transition: color .15s; }
@@ -415,7 +466,7 @@ button.sm { padding: 3px 9px; font-size: 12px; }
 .comboList::-webkit-scrollbar { width: 9px; }
 .comboList::-webkit-scrollbar-thumb { background: var(--line); border-radius: 9px; border: 2px solid var(--panel2-solid); }
 .comboItem { display: flex; align-items: baseline; gap: 8px; padding: 7px 11px; cursor: pointer; border-left: 2px solid transparent; }
-.comboItem.hi { background: rgba(201, 162, 75, .12); border-left-color: var(--gold); }
+.comboItem.hi { background: rgb(var(--gold-rgb) / .12); border-left-color: var(--gold); }
 .comboLabel { font-size: 13px; white-space: nowrap; flex: none; }
 .comboHint { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .comboEmpty { padding: 9px 11px; color: var(--faint); font-size: 13px; }
@@ -432,19 +483,56 @@ button.sm { padding: 3px 9px; font-size: 12px; }
 }
 .swatch.plain::before {
   width: 2px; height: 12px; background: var(--gold-bright);
-  box-shadow: 0 0 5px rgba(231, 200, 120, .6); border-radius: 0 0 2px 2px;
+  box-shadow: 0 0 5px rgb(var(--gold-bright-rgb) / .6); border-radius: 0 0 2px 2px;
 }
 .swatch.headed::before {
   width: 2px; height: 7px; background: var(--gold-deep); border-radius: 0 0 2px 2px;
 }
 .assignmentList { margin-top: 12px; }
-.templatesBody { margin-top: 12px; }
-.introBox { min-height: 110px; }
-.outroBox { min-height: 70px; }
-.outroLabel { margin-top: 8px; }
-.backupRow { margin-top: 10px; }
-.importBtn { cursor: pointer; }
-.importBtn input { display: none; }
+
+/* ── Settings panel ─────────────────────────────────────────── */
+/* Stacked (with gold rules between) on narrow; on wide viewports the three
+   controls become equal columns split by faded gold verticals. Row subgrid
+   keeps every label and every control aligned across the columns regardless
+   of how each hint wraps. */
+.settingsBody { margin-top: 14px; display: grid; grid-template-columns: 1fr; }
+.settingRow { display: flex; flex-direction: column; gap: 9px; min-width: 0; padding: 15px 0; }
+.settingRow:first-child { padding-top: 2px; }
+
+.settingLabel { display: flex; flex-direction: column; gap: 3px; margin: 0; }
+.settingName { color: var(--text); font-size: 13px; letter-spacing: .02em; }
+.settingHint { color: var(--muted); font-size: 11.5px; line-height: 1.4; }
+
+@media (min-width: 800px) {
+  .settingsBody { grid-template-columns: repeat(3, 1fr); grid-template-rows: auto auto; column-gap: 0; row-gap: 12px; }
+  .settingRow {
+    display: grid; grid-template-rows: subgrid; grid-row: span 2; gap: 12px;
+    padding: 2px 26px; position: relative;
+  }
+  .settingRow:first-child { padding-left: 2px; }
+  .settingRow:last-child { padding-right: 2px; }
+  /* faded gold divider centred in the gutter between columns */
+  .settingRow + .settingRow::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 1px;
+    background: linear-gradient(180deg, transparent, var(--line-gold) 14%, var(--line-gold) 86%, transparent);
+  }
+}
+
+/* WPM — a taste dial: gold-accented rail with a live tabular readout */
+.sliderRow { display: flex; align-items: center; gap: 16px; }
+.sliderRow input[type="range"] { flex: 1; }
+.sliderVal {
+  min-width: 70px; font-size: 14px; font-variant-numeric: tabular-nums;
+  color: var(--gold-bright); letter-spacing: .01em; white-space: nowrap;
+}
+.sliderVal span { font-size: 11px; letter-spacing: .04em; }
+
+/* Budget bounds — precise figures, so a tidy paired number field, not sliders */
+.rangeField { display: flex; align-items: center; gap: 10px; }
+.numField { width: 92px; text-align: right; font-variant-numeric: tabular-nums; appearance: textfield; -moz-appearance: textfield; }
+.numField::-webkit-outer-spin-button, .numField::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.rangeSep { color: var(--faint); font-size: 12px; letter-spacing: .04em; }
+.rangeUnit { font-size: 12px; }
 .saveBar .warn, .saveBar .muted { font-size: 12px; }
 
 /* ── Misc ───────────────────────────────────────────────────── */
@@ -452,9 +540,9 @@ button.sm { padding: 3px 9px; font-size: 12px; }
   position: fixed; bottom: 22px; left: 0; right: 0; margin: 0 auto; width: fit-content; z-index: 50;
   background: linear-gradient(180deg, var(--gold-bright), var(--gold)); color: #2a2008;
   padding: 10px 20px; border-radius: 999px; font-weight: 600;
-  box-shadow: 0 10px 30px -8px rgba(201, 162, 75, .5); animation: rise .3s ease both;
+  box-shadow: 0 10px 30px -8px rgb(var(--gold-rgb) / .5); animation: rise .3s ease both;
 }
-.err { background: rgba(207, 106, 91, .12); border: 1px solid var(--danger); color: #f2c2b8; padding: 10px 12px; border-radius: 8px; }
+.err { background: rgb(var(--danger-rgb) / .12); border: 1px solid var(--danger); color: #f2c2b8; padding: 10px 12px; border-radius: 8px; }
 details summary { cursor: pointer; color: var(--gold); font-size: 12px; text-transform: uppercase; letter-spacing: .1em; list-style: none; }
 details summary::-webkit-details-marker { display: none; }
 details summary::before { content: "۞ "; color: var(--gold); opacity: .8; }
@@ -465,7 +553,7 @@ details summary::before { content: "۞ "; color: var(--gold); opacity: .8; }
 
 /* ── Motion ─────────────────────────────────────────────────── */
 @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
-@keyframes glow { 0%, 100% { text-shadow: 0 0 14px rgba(201, 162, 75, .25); } 50% { text-shadow: 0 0 26px rgba(201, 162, 75, .55); } }
+@keyframes glow { 0%, 100% { text-shadow: 0 0 14px rgb(var(--gold-rgb) / .25); } 50% { text-shadow: 0 0 26px rgb(var(--gold-rgb) / .55); } }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }

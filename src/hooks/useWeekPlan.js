@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { pickWeek, computeSplits, buildAssignments } from "../utils/engine.js";
 import { sectionHeading } from "../utils/message.js";
-import { WORD_BUDGET } from "../config/constants.js";
 
 /**
  * The derivation pipeline for one week's plan:
@@ -58,12 +57,16 @@ export function useWeekPlan(sections, config, members, weights) {
     for (const stop of budgetStops) {
       if (Math.abs(stop - value) < Math.abs(best - value)) best = stop;
     }
-    return Math.min(WORD_BUDGET.MAX, Math.max(WORD_BUDGET.MIN, best));
+    return Math.min(config.budgetMax, Math.max(config.budgetMin, best));
   };
 
-  // The reachable ceiling from this start ayah: you can't budget more than the words left in the surah
-  const remainingWords = budgetStops.length ? budgetStops[budgetStops.length - 1] : WORD_BUDGET.MAX;
-  const maxBudget = Math.min(WORD_BUDGET.MAX, Math.max(WORD_BUDGET.MIN, remainingWords));
+  // Two distinct ceilings, kept separate on purpose:
+  //  • remainingWords — words left to the END OF THE SURAH from this start ayah.
+  //  • maxBudget      — how far the slider can travel
+  const remainingWords = budgetStops.length
+    ? budgetStops[budgetStops.length - 1]
+    : config.budgetMax;
+  const maxBudget = Math.min(config.budgetMax, Math.max(config.budgetMin, remainingWords));
 
   const algoSplits = useMemo(() => computeSplits(weekSections, weights), [weekSections, weights]);
 
@@ -97,6 +100,7 @@ export function useWeekPlan(sections, config, members, weights) {
     resetSplits,
     snapBudget,
     maxBudget,
+    remainingWords,
     budgetMarks,
   };
 }

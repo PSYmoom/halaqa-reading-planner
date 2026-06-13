@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { SURAH_NAMES, surahName, WORD_BUDGET } from "../config/constants.js";
+import { SURAH_NAMES, surahName } from "../config/constants.js";
 import { readingTime, sectionHeading } from "../utils/message.js";
 import { Combobox } from "./Combobox.jsx";
 
@@ -39,10 +39,10 @@ export function CommandBar({
   const setStartAyah = (value) => setConfig({ ...config, startAyah: +value });
   const setBudget = (value) => setConfig({ ...config, wordBudget: week.snapBudget(+value) });
   const shownBudget = Math.max(
-    WORD_BUDGET.MIN,
+    config.budgetMin,
     Math.min(week.totalWords || config.wordBudget, week.maxBudget),
   );
-  const atSurahEnd = shownBudget >= week.maxBudget;
+  const atSurahEnd = shownBudget >= week.remainingWords;
 
   // Pill labels, named here so the JSX below stays declarative.
   const readerNames = members.length ? members.join(", ") : "—";
@@ -50,7 +50,7 @@ export function CommandBar({
   const coverageLabel =
     week.weekStart != null
       ? `Covers Ayat ${week.weekStart}–${week.weekEnd} · ${week.weekSections.length} sections · ` +
-        `${week.totalWords.toLocaleString()} words · ${readingTime(week.totalWords)} read`
+        `${week.totalWords.toLocaleString()} words · ${readingTime(week.totalWords, config.readingWpm)} read`
       : null;
 
   return (
@@ -86,7 +86,7 @@ export function CommandBar({
           <div className="budgetSlider">
             <div className="budgetTicks">
               {week.budgetMarks.map((m, i) => {
-                const pct = ((m.at - WORD_BUDGET.MIN) / (week.maxBudget - WORD_BUDGET.MIN)) * 100;
+                const pct = ((m.at - config.budgetMin) / (week.maxBudget - config.budgetMin)) * 100;
                 if (pct < 0 || pct > 100) return null;
                 return (
                   <span
@@ -99,7 +99,7 @@ export function CommandBar({
             </div>
             <input
               type="range"
-              min={WORD_BUDGET.MIN}
+              min={config.budgetMin}
               max={week.maxBudget}
               step="any"
               value={shownBudget}

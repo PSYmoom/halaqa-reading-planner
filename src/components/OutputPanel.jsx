@@ -1,11 +1,27 @@
+import { useState } from "react";
 import { surahName } from "../config/constants.js";
 import { readingTime } from "../utils/message.js";
 
 /**
  * Full-width output — the actual product of the tool: the WhatsApp message
- * preview, the copy button, and "Mark as sent".
+ * preview, the copy button, and "Mark as sent". The intro/outro templates are
+ * edited in place here (toggle "Edit text"), so the preview is the editor: the
+ * read-only message and the fields that shape it share the same frame.
  */
-export function OutputPanel({ message, surah, memberCount, week, nextLabel, onMarkSent, flash }) {
+export function OutputPanel({
+  message,
+  surah,
+  memberCount,
+  week,
+  wpm,
+  templates,
+  setTemplates,
+  nextLabel,
+  onMarkSent,
+  flash,
+}) {
+  const [editing, setEditing] = useState(false);
+
   const copyMessage = async () => {
     try {
       await navigator.clipboard.writeText(message);
@@ -15,10 +31,13 @@ export function OutputPanel({ message, surah, memberCount, week, nextLabel, onMa
     }
   };
 
+  const setIntro = (intro) => setTemplates({ ...templates, intro });
+  const setOutro = (outro) => setTemplates({ ...templates, outro });
+
   const readerLabel = `${memberCount} reader${memberCount === 1 ? "" : "s"}`;
   const coverage =
     week.weekStart != null
-      ? ` · Ayat ${week.weekStart}–${week.weekEnd} · ${readingTime(week.totalWords)} read`
+      ? ` · Ayat ${week.weekStart}–${week.weekEnd} · ${readingTime(week.totalWords, wpm)} read`
       : "";
 
   return (
@@ -28,11 +47,45 @@ export function OutputPanel({ message, surah, memberCount, week, nextLabel, onMa
           <div className="outputHead">
             <h2>WhatsApp message</h2>
             <span className="outputMeta">
-              Preview · {readerLabel}
+              {editing ? "Editing" : "Preview"} · {readerLabel}
               {coverage} · Surah {surahName(surah)}
             </span>
+            <button
+              type="button"
+              className={"editToggle" + (editing ? " active" : "")}
+              onClick={() => setEditing((v) => !v)}
+              aria-pressed={editing}
+              title={editing ? "Back to the message preview" : "Edit the intro and outro text"}
+            >
+              {editing ? "✓ Done" : "✎ Edit text"}
+            </button>
           </div>
-          <textarea value={message} readOnly />
+
+          {editing ? (
+            <div className="templateEditor">
+              <label className="tmplLabel">
+                Intro <span className="muted">({"{surah}"} becomes the surah name)</span>
+              </label>
+              <textarea
+                className="introBox"
+                value={templates.intro}
+                onChange={(e) => setIntro(e.target.value)}
+              />
+              <div className="tmplDivider">
+                <span>
+                  <i>۞</i> reading list · generated from the split
+                </span>
+              </div>
+              <label className="tmplLabel">Outro</label>
+              <textarea
+                className="outroBox"
+                value={templates.outro}
+                onChange={(e) => setOutro(e.target.value)}
+              />
+            </div>
+          ) : (
+            <textarea className="previewBox" value={message} readOnly />
+          )}
         </div>
         <div className="outputSide">
           <button className="primary big" onClick={copyMessage}>

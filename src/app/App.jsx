@@ -11,7 +11,7 @@ import { Masthead } from "../components/Masthead.jsx";
 import { CommandBar } from "../components/CommandBar.jsx";
 import { BucketEditor } from "../components/BucketEditor.jsx";
 import { SplitPanel } from "../components/SplitPanel.jsx";
-import { TemplatesPanel } from "../components/TemplatesPanel.jsx";
+import { SettingsPanel } from "../components/SettingsPanel.jsx";
 import { OutputPanel } from "../components/OutputPanel.jsx";
 
 /**
@@ -77,20 +77,23 @@ export default function App() {
           hasOverrides={readers.overrideActive}
           clearOverrides={readers.clearOverrides}
         />
-        <SplitPanel week={week} />
+        <SplitPanel week={week} wpm={config.readingWpm} />
       </div>
-
-      <TemplatesPanel config={config} setConfig={setConfig} flash={flash} />
 
       <OutputPanel
         message={message}
         surah={config.surah}
         memberCount={readers.members.length}
         week={week}
+        wpm={config.readingWpm}
+        templates={config.templates}
+        setTemplates={(templates) => setConfig({ ...config, templates })}
         nextLabel={nextLabel}
         onMarkSent={markSent}
         flash={flash}
       />
+
+      <SettingsPanel config={config} setConfig={setConfig} flash={flash} />
 
       {toast && <div className="toast">{toast}</div>}
     </div>
