@@ -8,6 +8,7 @@ import {
   pickWeek,
   computeSplits,
   buildAssignments,
+  nextStart,
 } from "../src/utils/engine.js";
 
 // Fixture: n sections, one ayah each (ayah i+1), with the given word counts.
@@ -163,5 +164,20 @@ describe("buildAssignments", () => {
     assert.equal(a.words, 0);
     assert.equal(a.ayahStart, null);
     assert.equal(b.words, 30);
+  });
+});
+
+describe("nextStart", () => {
+  test("advances to the ayah after weekEnd within a surah", () => {
+    assert.deepEqual(nextStart(3, 130, 153, 200), { surah: 3, ayah: 154, rollOver: false });
+  });
+  test("rolls over to the next surah at the end of a surah", () => {
+    assert.deepEqual(nextStart(3, 199, 200, 200), { surah: 4, ayah: 1, rollOver: true });
+  });
+  test("wraps from the last surah (114) back to the first", () => {
+    assert.deepEqual(nextStart(114, 5, 6, 6), { surah: 1, ayah: 1, rollOver: true });
+  });
+  test("never rolls over when the surah length is unknown (sections not loaded)", () => {
+    assert.deepEqual(nextStart(3, 130, null, null), { surah: 3, ayah: 131, rollOver: false });
   });
 });

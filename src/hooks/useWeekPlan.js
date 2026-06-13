@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { pickWeek, computeSplits, buildAssignments } from "../utils/engine.js";
+import { sectionHeading } from "../utils/message.js";
 import { WORD_BUDGET } from "../config/constants.js";
 
 /**
@@ -37,6 +38,20 @@ export function useWeekPlan(sections, config, members, weights) {
     return stops;
   }, [sections, config.startAyah]);
 
+  const budgetMarks = useMemo(() => {
+    if (!sections) return [];
+    let start = sections.findIndex((s) => s.ayahEnd >= config.startAyah);
+    if (start < 0) start = 0;
+    const marks = [];
+    let before = 0; // cumulative words before the current section
+    for (let i = start; i < sections.length; i++) {
+      if (i > start)
+        marks.push({ at: before, headed: sectionHeading(sections[i]) !== "Translation" });
+      before += sections[i].words;
+    }
+    return marks;
+  }, [sections, config.startAyah]);
+
   const snapBudget = (value) => {
     if (!budgetStops.length) return value;
     let best = budgetStops[0];
@@ -45,6 +60,10 @@ export function useWeekPlan(sections, config, members, weights) {
     }
     return Math.min(WORD_BUDGET.MAX, Math.max(WORD_BUDGET.MIN, best));
   };
+
+  // The reachable ceiling from this start ayah: you can't budget more than the words left in the surah
+  const remainingWords = budgetStops.length ? budgetStops[budgetStops.length - 1] : WORD_BUDGET.MAX;
+  const maxBudget = Math.min(WORD_BUDGET.MAX, Math.max(WORD_BUDGET.MIN, remainingWords));
 
   const algoSplits = useMemo(() => computeSplits(weekSections, weights), [weekSections, weights]);
 
@@ -77,5 +96,7 @@ export function useWeekPlan(sections, config, members, weights) {
     manualSplits,
     resetSplits,
     snapBudget,
+    maxBudget,
+    budgetMarks,
   };
 }

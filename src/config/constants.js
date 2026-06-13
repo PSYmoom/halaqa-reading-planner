@@ -148,8 +148,8 @@ export const COLORS = [
 // Approximate words-per-minute for reading the tafsir ALOUD in the halaqa (slower than silent reading; tafsir mixes English prose with Arabic quotes).
 export const READING_WPM = 150;
 
-// Range of the weekly word-budget slider.
-export const WORD_BUDGET = { MIN: 500, MAX: 14000, STEP: 50 };
+// Range of the weekly word-budget slider
+export const WORD_BUDGET = { MIN: 500, MAX: 14000 };
 
 // How long a toast notification stays on screen.
 export const TOAST_MS = 1600;

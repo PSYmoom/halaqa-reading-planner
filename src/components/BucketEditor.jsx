@@ -163,7 +163,7 @@ export function BucketEditor({
 
   return (
     <div className="card">
-      <h2>Availability buckets &amp; weights — one reader per bucket each week</h2>
+      <h2>Availability buckets &amp; weights</h2>
 
       {draft.buckets.map((b, bi) => {
         const reader = readersByBucket[b.id];
@@ -278,7 +278,21 @@ export function BucketEditor({
               </span>
             </div>
             <span className="x" onClick={() => removeBucket(bi)} title="Delete bucket">
-              🗑
+              <svg
+                className="trashIcon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M3 6h18" />
+                <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" />
+                <path d="M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14" />
+                <path d="M10 11v6M14 11v6" />
+              </svg>
             </span>
           </div>
         );

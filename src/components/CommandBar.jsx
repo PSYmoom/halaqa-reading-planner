@@ -38,6 +38,11 @@ export function CommandBar({
   const setSurah = (value) => setConfig({ ...config, surah: +value });
   const setStartAyah = (value) => setConfig({ ...config, startAyah: +value });
   const setBudget = (value) => setConfig({ ...config, wordBudget: week.snapBudget(+value) });
+  const shownBudget = Math.max(
+    WORD_BUDGET.MIN,
+    Math.min(week.totalWords || config.wordBudget, week.maxBudget),
+  );
+  const atSurahEnd = shownBudget >= week.maxBudget;
 
   // Pill labels, named here so the JSX below stays declarative.
   const readerNames = members.length ? members.join(", ") : "—";
@@ -76,20 +81,34 @@ export function CommandBar({
       <div className="budgetBar">
         <div className="budgetField">
           <label>
-            How much this week — word budget:{" "}
-            <b className="stat">{config.wordBudget.toLocaleString()}</b>
+            How much this week — word budget: <b className="stat">{shownBudget.toLocaleString()}</b>
           </label>
-          <input
-            type="range"
-            min={WORD_BUDGET.MIN}
-            max={WORD_BUDGET.MAX}
-            step={WORD_BUDGET.STEP}
-            value={config.wordBudget}
-            onChange={(e) => setBudget(e.target.value)}
-          />
+          <div className="budgetSlider">
+            <div className="budgetTicks">
+              {week.budgetMarks.map((m, i) => {
+                const pct = ((m.at - WORD_BUDGET.MIN) / (week.maxBudget - WORD_BUDGET.MIN)) * 100;
+                if (pct < 0 || pct > 100) return null;
+                return (
+                  <span
+                    key={i}
+                    className={"budgetTick " + (m.headed ? "headed" : "plain")}
+                    style={{ left: pct + "%" }}
+                  />
+                );
+              })}
+            </div>
+            <input
+              type="range"
+              min={WORD_BUDGET.MIN}
+              max={week.maxBudget}
+              step="any"
+              value={shownBudget}
+              onChange={(e) => setBudget(e.target.value)}
+            />
+          </div>
           <div className="row muted budgetHint">
             <span>lighter week</span>
-            <span>heavier week</span>
+            <span>{atSurahEnd ? "✓ to end of surah" : "heavier week"}</span>
           </div>
         </div>
       </div>

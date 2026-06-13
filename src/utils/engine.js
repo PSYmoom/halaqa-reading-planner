@@ -185,3 +185,17 @@ export function buildAssignments(weekSections, members, splits) {
     };
   });
 }
+
+/**
+ * Where next week begins: the ayah after `weekEnd`, rolling over to the next
+ * surah's first ayah once a surah's final ayah (`surahLastAyah`) is passed —
+ * wrapping the last surah (114) back to the first. `surahLastAyah` may be null
+ * (sections not loaded yet), in which case it never rolls over.
+ */
+export function nextStart(surah, startAyah, weekEnd, surahLastAyah) {
+  const ayah = (weekEnd || startAyah) + 1;
+  if (surahLastAyah != null && ayah > surahLastAyah) {
+    return { surah: surah >= 114 ? 1 : surah + 1, ayah: 1, rollOver: true };
+  }
+  return { surah, ayah, rollOver: false };
+}

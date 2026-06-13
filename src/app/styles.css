@@ -135,8 +135,52 @@ h2::before {
 .cbRow { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
 .cbRow .field { flex: 1 1 300px; min-width: 200px; margin: 0; }   /* share the full bar width evenly */
 .budgetBar { margin-top: 16px; padding-top: 14px; border-top: 1px dashed var(--line); }
-.budgetBar input[type="range"] { margin-top: 2px; }
 .budgetHint { justify-content: space-between; font-size: 11.5px; margin-top: 1px; }
+
+/* Custom budget slider */
+.budgetSlider { position: relative; }
+.budgetSlider input[type="range"] {
+  -webkit-appearance: none; appearance: none;
+  position: relative; z-index: 1;            /* above the ticks, so the thumb covers them */
+  display: block;                            /* kill the inline baseline gap → ticks centre on the rail */
+  width: 100%; height: 22px; margin: 0; background: transparent; cursor: pointer;
+}
+.budgetSlider input[type="range"]::-webkit-slider-runnable-track {
+  height: 3px; border-radius: 2px; background: rgba(239, 229, 208, .32);
+}
+.budgetSlider input[type="range"]::-moz-range-track {
+  height: 3px; border-radius: 2px; background: rgba(239, 229, 208, .32);
+}
+.budgetSlider input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 16px; height: 16px; margin-top: -6.5px; border-radius: 50%;   /* centre on the 3px rail */
+  background: radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold-deep));
+  box-shadow: 0 0 0 1px var(--gold-deep), 0 1px 4px rgba(0, 0, 0, .5);
+}
+.budgetSlider input[type="range"]::-moz-range-thumb {
+  width: 16px; height: 16px; border: none; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold-deep));
+  box-shadow: 0 0 0 1px var(--gold-deep), 0 1px 4px rgba(0, 0, 0, .5);
+}
+/* Clear the global input:focus ring (var(--ring)) that would otherwise frame
+   the whole slider box — focus shows on the thumb only (below). */
+.budgetSlider input[type="range"]:focus { outline: none; box-shadow: none; }
+.budgetSlider input[type="range"]:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 1px var(--gold-deep), 0 0 0 4px rgba(201, 162, 75, .25);
+}
+.budgetSlider input[type="range"]:focus::-moz-range-thumb {
+  box-shadow: 0 0 0 1px var(--gold-deep), 0 0 0 4px rgba(201, 162, 75, .25);
+}
+
+/* Section notches on the rail */
+.budgetTicks { position: absolute; inset: 0 8px; pointer-events: none; z-index: 0; }
+.budgetTick { position: absolute; top: 50%; transform: translate(-50%, -50%); border-radius: 1px; }
+.budgetTick.plain {                 /* translation — primary, pokes past the thumb */
+  width: 2px; height: 22px; background: var(--gold-bright); box-shadow: 0 0 6px rgba(231, 200, 120, .55);
+}
+.budgetTick.headed {                /* subheading — secondary, shorter than the thumb */
+  width: 2px; height: 11px; background: var(--gold-deep);
+}
 .cbPills { margin-top: 14px; gap: 10px; }
 
 .card {
@@ -286,7 +330,13 @@ button.sm { padding: 3px 9px; font-size: 12px; }
 .outputMain textarea { flex: 1; min-height: 212px; margin: 0; }
 .outputSide { display: flex; flex-direction: column; gap: 10px; }
 .primary.big { width: 100%; padding: 13px 14px; font-size: 15.5px; border-radius: 10px; }
-.markBtn { width: 100%; }
+.markBtn { width: 100%; transition: border-color .15s, background .15s, box-shadow .15s, transform .05s; }
+.btnIcon { margin-right: .42em; }
+.markBtn:hover {
+  border-color: var(--accent);
+  background: rgba(63, 174, 147, .12);
+  box-shadow: 0 0 0 1px rgba(63, 174, 147, .3), 0 0 16px -6px rgba(63, 174, 147, .55);
+}
 .outputNote { font-size: 11.5px; line-height: 1.45; margin: 2px 0 0; }
 .nextNote { margin-top: auto; padding-top: 11px; border-top: 1px dashed var(--line); font-size: 12.5px; color: var(--muted); }
 
@@ -299,6 +349,12 @@ button.sm { padding: 3px 9px; font-size: 12px; }
 .dot { width: 11px; height: 11px; border-radius: 3px; flex: none; box-shadow: 0 0 0 1px rgba(0, 0, 0, .3); }
 .sec { font-size: 12.5px; color: var(--text); padding: 1.5px 0; }
 .sec .w { color: var(--faint); font-variant-numeric: tabular-nums; }
+.secGroup { padding: 1.5px 0; }
+.subSec {
+  font-size: 12px; color: var(--muted); padding: 1px 0 1px 16px;
+  margin-left: 4px; border-left: 1px solid var(--line);
+}
+.subSec .w { color: var(--faint); font-variant-numeric: tabular-nums; }
 
 .bucketRow { display: flex; align-items: center; gap: 8px; padding: 9px 6px; border-top: 1px dashed var(--line); border-radius: 9px; transition: background .12s, box-shadow .12s; }
 .bucketRow:first-of-type { border-top: none; }
@@ -336,6 +392,7 @@ button.sm { padding: 3px 9px; font-size: 12px; }
 .addMember { width: 134px; padding: 3px 11px; font-size: 13px; border-radius: 999px; border-color: var(--gold-deep); }
 .x { cursor: pointer; color: var(--faint); padding: 0 4px; transition: color .15s; }
 .x:hover { color: var(--danger); }
+.trashIcon { width: 14px; height: 14px; display: block; }
 
 .saveBar { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 11px; border-top: 1px solid var(--line); }
 
@@ -380,7 +437,6 @@ button.sm { padding: 3px 9px; font-size: 12px; }
 .swatch.headed::before {
   width: 2px; height: 7px; background: var(--gold-deep); border-radius: 0 0 2px 2px;
 }
-.lgSep { width: 1px; height: 12px; background: var(--line); display: inline-block; }
 .assignmentList { margin-top: 12px; }
 .templatesBody { margin-top: 12px; }
 .introBox { min-height: 110px; }
@@ -393,7 +449,7 @@ button.sm { padding: 3px 9px; font-size: 12px; }
 
 /* ── Misc ───────────────────────────────────────────────────── */
 .toast {
-  position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%); z-index: 50;
+  position: fixed; bottom: 22px; left: 0; right: 0; margin: 0 auto; width: fit-content; z-index: 50;
   background: linear-gradient(180deg, var(--gold-bright), var(--gold)); color: #2a2008;
   padding: 10px 20px; border-radius: 999px; font-weight: 600;
   box-shadow: 0 10px 30px -8px rgba(201, 162, 75, .5); animation: rise .3s ease both;

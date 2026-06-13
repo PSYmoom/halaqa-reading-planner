@@ -1,5 +1,7 @@
 import { useMemo } from "react";
+import { surahName } from "../config/constants.js";
 import { generateMessage } from "../utils/message.js";
+import { nextStart } from "../utils/engine.js";
 import { useConfig } from "../hooks/useConfig.js";
 import { useSurahSections } from "../hooks/useSurahSections.js";
 import { useReaders } from "../hooks/useReaders.js";
@@ -28,11 +30,24 @@ export default function App() {
     [config.surah, week.assignments, config.templates],
   );
 
-  const nextAyah = (week.weekEnd || config.startAyah) + 1;
+  // Where next week begins (rolls over to the next surah at a surah's end).
+  const surahLastAyah = sections?.length ? sections[sections.length - 1].ayahEnd : null;
+  const next = nextStart(config.surah, config.startAyah, week.weekEnd, surahLastAyah);
+  const nextLabel = next.rollOver ? `Surah ${surahName(next.surah)} · Ayat 1` : `Ayat ${next.ayah}`;
+
   const markSent = () => {
-    setConfig({ ...config, buckets: readers.rotateBuckets(), startAyah: nextAyah });
+    setConfig({
+      ...config,
+      buckets: readers.rotateBuckets(),
+      surah: next.surah,
+      startAyah: next.ayah,
+    });
     readers.resetWeek();
-    flash("Marked as sent — active buckets rotated to the next reader");
+    flash(
+      next.rollOver
+        ? `Marked as sent — moved on to Surah ${surahName(next.surah)}`
+        : "Marked as sent — active buckets rotated to the next reader",
+    );
   };
 
   return (
@@ -62,7 +77,7 @@ export default function App() {
           hasOverrides={readers.overrideActive}
           clearOverrides={readers.clearOverrides}
         />
-        <SplitPanel week={week} memberCount={readers.members.length} />
+        <SplitPanel week={week} />
       </div>
 
       <TemplatesPanel config={config} setConfig={setConfig} flash={flash} />
@@ -72,7 +87,7 @@ export default function App() {
         surah={config.surah}
         memberCount={readers.members.length}
         week={week}
-        nextAyah={nextAyah}
+        nextLabel={nextLabel}
         onMarkSent={markSent}
         flash={flash}
       />
