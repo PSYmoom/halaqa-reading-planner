@@ -39,16 +39,27 @@ export function TemplatesPanel({ config, setConfig, flash }) {
     <details className="card templatesCard">
       <summary>Message templates &amp; config backup</summary>
       <div className="templatesBody">
-        <label>Intro <span className="muted">({"{surah}"} is replaced)</span></label>
-        <textarea className="introBox" value={config.templates.intro}
-                  onChange={(e) => setIntro(e.target.value)} />
+        <label>
+          Intro <span className="muted">({"{surah}"} is replaced)</span>
+        </label>
+        <textarea
+          className="introBox"
+          value={config.templates.intro}
+          onChange={(e) => setIntro(e.target.value)}
+        />
         <label className="outroLabel">Outro</label>
-        <textarea className="outroBox" value={config.templates.outro}
-                  onChange={(e) => setOutro(e.target.value)} />
+        <textarea
+          className="outroBox"
+          value={config.templates.outro}
+          onChange={(e) => setOutro(e.target.value)}
+        />
         <div className="row backupRow">
-          <button className="sm" onClick={exportConfig}>Export config</button>
+          <button className="sm" onClick={exportConfig}>
+            Export config
+          </button>
           <label className="pill importBtn">
-            Import config<input type="file" accept="application/json" onChange={importConfig} />
+            Import config
+            <input type="file" accept="application/json" onChange={importConfig} />
           </label>
         </div>
       </div>

@@ -46,10 +46,7 @@ export function useWeekPlan(sections, config, members, weights) {
     return Math.min(WORD_BUDGET.MAX, Math.max(WORD_BUDGET.MIN, best));
   };
 
-  const algoSplits = useMemo(
-    () => computeSplits(weekSections, weights),
-    [weekSections, weights]
-  );
+  const algoSplits = useMemo(() => computeSplits(weekSections, weights), [weekSections, weights]);
 
   // Identifies "the same week with the same algorithmic answer". Hand-tuned
   // splits only apply while this key matches the one they were saved under.
@@ -62,7 +59,7 @@ export function useWeekPlan(sections, config, members, weights) {
 
   const assignments = useMemo(
     () => buildAssignments(weekSections, members, splits),
-    [weekSections, members, splits]
+    [weekSections, members, splits],
   );
 
   const totalWords = weekSections.reduce((sum, s) => sum + s.words, 0);
@@ -70,7 +67,15 @@ export function useWeekPlan(sections, config, members, weights) {
   const weekEnd = weekSections[weekSections.length - 1]?.ayahEnd;
 
   return {
-    weekSections, assignments, totalWords, weekStart, weekEnd,
-    splits, setSplits, manualSplits, resetSplits, snapBudget,
+    weekSections,
+    assignments,
+    totalWords,
+    weekStart,
+    weekEnd,
+    splits,
+    setSplits,
+    manualSplits,
+    resetSplits,
+    snapBudget,
   };
 }

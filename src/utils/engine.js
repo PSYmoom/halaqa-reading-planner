@@ -12,11 +12,14 @@ export function isHeading(line) {
   // "(عليه السلام)"; drop it first so its closing ")" isn't read as prose
   // punctuation (which would reject the heading). Only strips parentheticals
   // containing Arabic glyphs, so English asides like "...you do.)" are untouched.
-  const s = line.trim().replace(/\s*\([^)]*[؀-ۿﭐ-﷿][^)]*\)$/, "").trim();
+  const s = line
+    .trim()
+    .replace(/\s*\([^)]*[؀-ۿﭐ-﷿][^)]*\)$/, "")
+    .trim();
   if (!s || s.length > 100) return false;
-  if (ARABIC.test(s)) return false;            // Arabic script
-  if (/[.!?:;,"”’)]$/.test(s)) return false;              // ends like prose
-  if (/^[(«"]/.test(s)) return false;                     // quote/translation line
+  if (ARABIC.test(s)) return false; // Arabic script
+  if (/[.!?:;,"”’)]$/.test(s)) return false; // ends like prose
+  if (/^[(«"]/.test(s)) return false; // quote/translation line
   const words = s.match(/[A-Za-z][A-Za-z'’-]*/g);
   if (!words || words.length < 2) return false;
   const sig = words.filter((w) => !SMALL.has(w.toLowerCase()));
@@ -30,7 +33,7 @@ export const wordCount = (s) => (s.match(/\S+/g) || []).length;
 
 /** Turn a raw surah JSON into a flat, ordered list of sections with word counts. */
 export function buildSections(rawAyahs) {
-  const ayahs = rawAyahs.slice().sort((a, b) => a.ayah - b.ayah);   // array is string-sorted upstream
+  const ayahs = rawAyahs.slice().sort((a, b) => a.ayah - b.ayah); // array is string-sorted upstream
   // 1) collapse consecutive identical commentary into blocks spanning an ayah range
   const blocks = [];
   for (const a of ayahs) {
@@ -44,7 +47,13 @@ export function buildSections(rawAyahs) {
   const sections = [];
   for (const b of blocks) {
     let cur = null;
-    const flush = () => { if (cur) { cur.words = wordCount(cur.body); sections.push(cur); cur = null; } };
+    const flush = () => {
+      if (cur) {
+        cur.words = wordCount(cur.body);
+        sections.push(cur);
+        cur = null;
+      }
+    };
     for (const line of b.text.split("\n")) {
       if (isHeading(line)) {
         flush();
@@ -58,9 +67,9 @@ export function buildSections(rawAyahs) {
   }
   // keep only what the app needs (lightweight, cacheable)
   return sections.map((s) => ({
-    title: s.title || (s.ayahStart === s.ayahEnd
-      ? `Ayat ${s.ayahStart}`
-      : `Ayat ${s.ayahStart}–${s.ayahEnd}`),
+    title:
+      s.title ||
+      (s.ayahStart === s.ayahEnd ? `Ayat ${s.ayahStart}` : `Ayat ${s.ayahStart}–${s.ayahEnd}`),
     words: s.words,
     ayahStart: s.ayahStart,
     ayahEnd: s.ayahEnd,
@@ -142,9 +151,12 @@ export function computeSplits(weekSections, weights) {
       const lastStart = k - minEach;
       for (let start = firstStart; start <= lastStart; start++) {
         if (dp[i - 1][start] === INF) continue;
-        const d = (pre[k] - pre[start]) - target[i - 1];
+        const d = pre[k] - pre[start] - target[i - 1];
         const c = dp[i - 1][start] + d * d;
-        if (c < dp[i][k]) { dp[i][k] = c; back[i][k] = start; }
+        if (c < dp[i][k]) {
+          dp[i][k] = c;
+          back[i][k] = start;
+        }
       }
     }
   }
@@ -162,9 +174,12 @@ export function buildAssignments(weekSections, members, splits) {
   return members.map((name, i) => {
     const secs = weekSections.slice(bounds[i], bounds[i + 1]);
     const words = secs.reduce((a, s) => a + s.words, 0);
-    const first = secs[0], last = secs[secs.length - 1];
+    const first = secs[0],
+      last = secs[secs.length - 1];
     return {
-      name, sections: secs, words,
+      name,
+      sections: secs,
+      words,
       ayahStart: first ? first.ayahStart : null,
       ayahEnd: last ? last.ayahEnd : null,
     };

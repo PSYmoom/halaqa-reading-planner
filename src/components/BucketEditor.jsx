@@ -12,15 +12,24 @@ const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
  * - drag a bucket's hamburger (☰) to reorder buckets
  * - click a member's name to make them this week's reader for that bucket (live)
  */
-export function BucketEditor({ config, setConfig, readersByBucket, setReaderForBucket, bucketsOff = {}, toggleBucket, hasOverrides, clearOverrides }) {
+export function BucketEditor({
+  config,
+  setConfig,
+  readersByBucket,
+  setReaderForBucket,
+  bucketsOff = {},
+  toggleBucket,
+  hasOverrides,
+  clearOverrides,
+}) {
   const [draft, setDraft] = useState({ buckets: config.buckets, weights: config.weights });
   const [dirty, setDirty] = useState(false);
-  const [drag, setDrag] = useState(null);   // { kind:'member', bi, index } | { kind:'bucket', index }
-  const [over, setOver] = useState(null);   // { kind:'member', bi, index } | { kind:'bucket', bi }
-  const dragRef = useRef(null);             // mirror of `drag` readable inside native handlers
+  const [drag, setDrag] = useState(null); // { kind:'member', bi, index } | { kind:'bucket', index }
+  const [over, setOver] = useState(null); // { kind:'member', bi, index } | { kind:'bucket', bi }
+  const dragRef = useRef(null); // mirror of `drag` readable inside native handlers
   const [addingTo, setAddingTo] = useState(null); // bucket index showing the inline add-member input
   const [newName, setNewName] = useState("");
-  const cancelAddRef = useRef(false);       // set when Escape should discard instead of commit
+  const cancelAddRef = useRef(false); // set when Escape should discard instead of commit
 
   // Resync the draft when the saved config changes externally (e.g. Mark as sent),
   // but never clobber unsaved edits.
@@ -28,33 +37,51 @@ export function BucketEditor({ config, setConfig, readersByBucket, setReaderForB
     if (!dirty) setDraft({ buckets: config.buckets, weights: config.weights });
   }, [config.buckets, config.weights, dirty]);
 
-  const apply = (next) => { setDraft(next); setDirty(true); };
+  const apply = (next) => {
+    setDraft(next);
+    setDirty(true);
+  };
   const setBuckets = (buckets) => apply({ ...draft, buckets });
 
-  const save = () => { setConfig({ ...config, buckets: draft.buckets, weights: draft.weights }); setDirty(false); };
+  const save = () => {
+    setConfig({ ...config, buckets: draft.buckets, weights: draft.weights });
+    setDirty(false);
+  };
   const discard = () => {
     setDraft({ buckets: config.buckets, weights: config.weights });
     setDirty(false);
-    clearOverrides?.();   // also undo this week's reader overrides (name-clicks)
+    clearOverrides?.(); // also undo this week's reader overrides (name-clicks)
   };
 
   // ── structural edits (draft only) ──
   const setWeight = (name, w) => apply({ ...draft, weights: { ...draft.weights, [name]: w } });
   // Inline add-member: a themed input replaces the "+ member" button. Enter/blur commits,
   // Escape discards (both routed through onBlur so it only commits once).
-  const startAdd = (bi) => { setAddingTo(bi); setNewName(""); cancelAddRef.current = false; };
+  const startAdd = (bi) => {
+    setAddingTo(bi);
+    setNewName("");
+    cancelAddRef.current = false;
+  };
   const finishAdd = (bi) => {
     const name = newName.trim();
     if (!cancelAddRef.current && name) {
-      const buckets = draft.buckets.map((b, i) => (i === bi ? { ...b, members: [...b.members, name] } : b));
-      const weights = draft.weights[name] == null ? { ...draft.weights, [name]: DEFAULT_WEIGHT } : draft.weights;
+      const buckets = draft.buckets.map((b, i) =>
+        i === bi ? { ...b, members: [...b.members, name] } : b,
+      );
+      const weights =
+        draft.weights[name] == null ? { ...draft.weights, [name]: DEFAULT_WEIGHT } : draft.weights;
       apply({ buckets, weights });
     }
     cancelAddRef.current = false;
-    setAddingTo(null); setNewName("");
+    setAddingTo(null);
+    setNewName("");
   };
   const removeMember = (bi, name) =>
-    setBuckets(draft.buckets.map((b, i) => (i === bi ? { ...b, members: b.members.filter((m) => m !== name) } : b)));
+    setBuckets(
+      draft.buckets.map((b, i) =>
+        i === bi ? { ...b, members: b.members.filter((m) => m !== name) } : b,
+      ),
+    );
   const addBucket = () => setBuckets([...draft.buckets, { id: newId(), members: [], ptr: 0 }]);
   const removeBucket = (bi) => setBuckets(draft.buckets.filter((_, i) => i !== bi));
 
@@ -64,7 +91,8 @@ export function BucketEditor({ config, setConfig, readersByBucket, setReaderForB
     let ti = toIndex;
     if (from.bi === toBi && from.index < toIndex) ti -= 1;
     buckets[toBi].members.splice(ti, 0, m);
-    const weights = draft.weights[m] == null ? { ...draft.weights, [m]: DEFAULT_WEIGHT } : draft.weights;
+    const weights =
+      draft.weights[m] == null ? { ...draft.weights, [m]: DEFAULT_WEIGHT } : draft.weights;
     apply({ buckets, weights });
   };
   const moveBucket = (fromIdx, toIdx) => {
@@ -77,13 +105,18 @@ export function BucketEditor({ config, setConfig, readersByBucket, setReaderForB
 
   // ── native drag-and-drop plumbing ──
   const startDrag = (payload) => (e) => {
-    dragRef.current = payload; setDrag(payload);
+    dragRef.current = payload;
+    setDrag(payload);
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", "");
     const ghost = e.currentTarget.closest(payload.kind === "member" ? ".memberChip" : ".bucketRow");
     if (ghost) e.dataTransfer.setDragImage(ghost, 12, 12);
   };
-  const endDrag = () => { dragRef.current = null; setDrag(null); setOver(null); };
+  const endDrag = () => {
+    dragRef.current = null;
+    setDrag(null);
+    setOver(null);
+  };
   const setOverIf = (o) => setOver((prev) => (eq(prev, o) ? prev : o));
 
   // Drop position is the gap nearest the cursor: left half of a chip → before it,
@@ -94,28 +127,38 @@ export function BucketEditor({ config, setConfig, readersByBucket, setReaderForB
   };
   const onChipOver = (bi, idx) => (e) => {
     if (dragRef.current?.kind !== "member") return;
-    e.preventDefault(); e.stopPropagation(); setOverIf({ kind: "member", bi, index: gapAt(e, idx) });
+    e.preventDefault();
+    e.stopPropagation();
+    setOverIf({ kind: "member", bi, index: gapAt(e, idx) });
   };
   const onChipDrop = (bi, idx) => (e) => {
     if (dragRef.current?.kind !== "member") return;
-    e.preventDefault(); e.stopPropagation();
-    moveMember(dragRef.current, bi, gapAt(e, idx)); endDrag();
+    e.preventDefault();
+    e.stopPropagation();
+    moveMember(dragRef.current, bi, gapAt(e, idx));
+    endDrag();
   };
   const onBucketEndOver = (bi, len) => (e) => {
     if (dragRef.current?.kind !== "member") return;
-    e.preventDefault(); setOverIf({ kind: "member", bi, index: len });
+    e.preventDefault();
+    setOverIf({ kind: "member", bi, index: len });
   };
   const onBucketEndDrop = (bi, len) => (e) => {
     if (dragRef.current?.kind !== "member") return;
-    e.preventDefault(); moveMember(dragRef.current, bi, len); endDrag();
+    e.preventDefault();
+    moveMember(dragRef.current, bi, len);
+    endDrag();
   };
   const onBucketRowOver = (bi) => (e) => {
     if (dragRef.current?.kind !== "bucket") return;
-    e.preventDefault(); setOverIf({ kind: "bucket", bi });
+    e.preventDefault();
+    setOverIf({ kind: "bucket", bi });
   };
   const onBucketRowDrop = (bi) => (e) => {
     if (dragRef.current?.kind !== "bucket") return;
-    e.preventDefault(); moveBucket(dragRef.current.index, bi); endDrag();
+    e.preventDefault();
+    moveBucket(dragRef.current.index, bi);
+    endDrag();
   };
 
   return (
@@ -126,21 +169,35 @@ export function BucketEditor({ config, setConfig, readersByBucket, setReaderForB
         const reader = readersByBucket[b.id];
         const off = !!bucketsOff[b.id];
         const isOverBucket = over?.kind === "bucket" && over.bi === bi;
-        const isEndOver = over?.kind === "member" && over.bi === bi && over.index === b.members.length;
+        const isEndOver =
+          over?.kind === "member" && over.bi === bi && over.index === b.members.length;
         return (
-          <div className={"bucketRow" + (isOverBucket ? " overBucket" : "") + (off ? " off" : "")}
-               key={b.id}
-               onDragOver={onBucketRowOver(bi)} onDrop={onBucketRowDrop(bi)}>
-            <span className="bhandle" draggable
-                  onDragStart={startDrag({ kind: "bucket", index: bi })} onDragEnd={endDrag}
-                  title="Drag to reorder bucket">☰</span>
-            <button type="button"
-                    className={"bucketToggle" + (off ? " isOff" : "")}
-                    aria-pressed={!off}
-                    onClick={() => toggleBucket?.(b.id)}
-                    title={off
-                      ? "Off this week — this bucket won't read or rotate forward. Click to include it."
-                      : "On this week. Click to skip — it won't read and won't advance to the next reader."}>
+          <div
+            className={"bucketRow" + (isOverBucket ? " overBucket" : "") + (off ? " off" : "")}
+            key={b.id}
+            onDragOver={onBucketRowOver(bi)}
+            onDrop={onBucketRowDrop(bi)}
+          >
+            <span
+              className="bhandle"
+              draggable
+              onDragStart={startDrag({ kind: "bucket", index: bi })}
+              onDragEnd={endDrag}
+              title="Drag to reorder bucket"
+            >
+              ☰
+            </span>
+            <button
+              type="button"
+              className={"bucketToggle" + (off ? " isOff" : "")}
+              aria-pressed={!off}
+              onClick={() => toggleBucket?.(b.id)}
+              title={
+                off
+                  ? "Off this week — this bucket won't read or rotate forward. Click to include it."
+                  : "On this week. Click to skip — it won't read and won't advance to the next reader."
+              }
+            >
               {off ? "Off" : "On"}
             </button>
             <div className="row chips">
@@ -151,24 +208,52 @@ export function BucketEditor({ config, setConfig, readersByBucket, setReaderForB
                 return (
                   <span
                     key={m}
-                    className={"memberChip" + (isReader ? " reader" : "") + (isDragging ? " dragging" : "") + (isBefore ? " dropBefore" : "")}
-                    onDragOver={onChipOver(bi, idx)} onDrop={onChipDrop(bi, idx)}
+                    className={
+                      "memberChip" +
+                      (isReader ? " reader" : "") +
+                      (isDragging ? " dragging" : "") +
+                      (isBefore ? " dropBefore" : "")
+                    }
+                    onDragOver={onChipOver(bi, idx)}
+                    onDrop={onChipDrop(bi, idx)}
                   >
-                    <span className="grip" draggable
-                          onDragStart={startDrag({ kind: "member", bi, index: idx })} onDragEnd={endDrag}
-                          title="Drag to reorder / move to another bucket">⠿</span>
-                    <span className="mName" onClick={() => setReaderForBucket(b.id, m)}
-                          title="Use as this week's reader">{m}</span>
+                    <span
+                      className="grip"
+                      draggable
+                      onDragStart={startDrag({ kind: "member", bi, index: idx })}
+                      onDragEnd={endDrag}
+                      title="Drag to reorder / move to another bucket"
+                    >
+                      ⠿
+                    </span>
+                    <span
+                      className="mName"
+                      onClick={() => setReaderForBucket(b.id, m)}
+                      title="Use as this week's reader"
+                    >
+                      {m}
+                    </span>
                     {isReader && <span className="tag next">reads</span>}
-                    <input type="range" min="1" max="10" value={draft.weights[m] ?? DEFAULT_WEIGHT}
-                           title={`weight ${draft.weights[m] ?? DEFAULT_WEIGHT}`}
-                           onChange={(e) => setWeight(m, +e.target.value)} />
+                    <input
+                      type="range"
+                      min="1"
+                      max="10"
+                      value={draft.weights[m] ?? DEFAULT_WEIGHT}
+                      title={`weight ${draft.weights[m] ?? DEFAULT_WEIGHT}`}
+                      onChange={(e) => setWeight(m, +e.target.value)}
+                    />
                     <b className="stat">{draft.weights[m] ?? DEFAULT_WEIGHT}</b>
-                    <span className="x" onClick={() => removeMember(bi, m)} title="Remove">×</span>
+                    <span className="x" onClick={() => removeMember(bi, m)} title="Remove">
+                      ×
+                    </span>
                   </span>
                 );
               })}
-              <span className={"dropEnd" + (isEndOver ? " dropBefore" : "")} onDragOver={onBucketEndOver(bi, b.members.length)} onDrop={onBucketEndDrop(bi, b.members.length)}>
+              <span
+                className={"dropEnd" + (isEndOver ? " dropBefore" : "")}
+                onDragOver={onBucketEndOver(bi, b.members.length)}
+                onDrop={onBucketEndDrop(bi, b.members.length)}
+              >
                 {addingTo === bi ? (
                   <input
                     className="addMember"
@@ -178,28 +263,43 @@ export function BucketEditor({ config, setConfig, readersByBucket, setReaderForB
                     onChange={(e) => setNewName(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") e.currentTarget.blur();
-                      else if (e.key === "Escape") { cancelAddRef.current = true; e.currentTarget.blur(); }
+                      else if (e.key === "Escape") {
+                        cancelAddRef.current = true;
+                        e.currentTarget.blur();
+                      }
                     }}
                     onBlur={() => finishAdd(bi)}
                   />
                 ) : (
-                  <button className="sm ghost" onClick={() => startAdd(bi)}>+ member</button>
+                  <button className="sm ghost" onClick={() => startAdd(bi)}>
+                    + member
+                  </button>
                 )}
               </span>
             </div>
-            <span className="x" onClick={() => removeBucket(bi)} title="Delete bucket">🗑</span>
+            <span className="x" onClick={() => removeBucket(bi)} title="Delete bucket">
+              🗑
+            </span>
           </div>
         );
       })}
 
       <div className="saveBar">
-        <button className="sm" onClick={addBucket}>+ bucket</button>
+        <button className="sm" onClick={addBucket}>
+          + bucket
+        </button>
         <span className="spacer" />
         {dirty || hasOverrides ? (
           <>
             <span className="warn">● {dirty ? "Unsaved changes" : "Reader override set"}</span>
-            <button className="sm" onClick={discard}>Discard</button>
-            {dirty && <button className="sm primary" onClick={save}>Save changes</button>}
+            <button className="sm" onClick={discard}>
+              Discard
+            </button>
+            {dirty && (
+              <button className="sm primary" onClick={save}>
+                Save changes
+              </button>
+            )}
           </>
         ) : (
           <span className="muted">All changes saved</span>

@@ -1,0 +1,12 @@
+# Build output & deps
+dist
+node_modules
+package-lock.json
+
+# Fonts (binary)
+src/assets/fonts
+
+# Hand-tuned, deliberately dense CSS ("Illuminated Manuscript" theme, packed for
+# 1080p) — Prettier would unpack the multi-declaration lines and lose the design.
+src/app/styles.css
+src/assets/fonts.css

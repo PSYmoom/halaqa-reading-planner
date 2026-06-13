@@ -5,7 +5,8 @@ import { surahName, quranLink, READING_WPM } from "../config/constants.js";
 export function readingTime(words, wpm = READING_WPM) {
   const min = Math.max(1, Math.round(words / wpm));
   if (min < 60) return `~${min} min`;
-  const h = Math.floor(min / 60), m = min % 60;
+  const h = Math.floor(min / 60),
+    m = min % 60;
   return m ? `~${h} h ${m} min` : `~${h} h`;
 }
 
@@ -37,14 +38,14 @@ export function ayahRange(a) {
  * A section's subheading, or "Translation" for plain (untitled) sections —
  * which carry a default "Ayat …" title in any of its cached generations.
  */
-export const sectionHeading = (s) =>
-  /^Ayat \d/.test(s.title || "") ? "Translation" : s.title;
+export const sectionHeading = (s) => (/^Ayat \d/.test(s.title || "") ? "Translation" : s.title);
 
 /** The full WhatsApp message: intro, one line + link per reader, outro. */
 export function generateMessage(surah, assignments, templates) {
   const intro = templates.intro.replace(/\{surah\}/g, `Surah ${surahName(surah)}`);
   const active = assignments.filter((a) => a.sections.length);
-  const lines = active.map((a, i) =>
-    `- ${a.name}: ${describe(a, active[i - 1])}\n  ${quranLink(surah, a.ayahStart)}`);
+  const lines = active.map(
+    (a, i) => `- ${a.name}: ${describe(a, active[i - 1])}\n  ${quranLink(surah, a.ayahStart)}`,
+  );
   return [intro, "", ...lines, "", templates.outro].join("\n");
 }

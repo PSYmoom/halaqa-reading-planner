@@ -250,27 +250,23 @@ button.sm { padding: 3px 9px; font-size: 12px; }
   transition: box-shadow .12s, top .12s, bottom .12s;
 }
 .handle:hover::after, .handle:active::after { top: 3px; bottom: 3px; box-shadow: 0 0 12px rgba(231, 200, 120, .95); }
-
-/* Section structure, integrated into the bar as marks hanging from the top
-   edge. A subheading start gets a tall bright gold tick with a small cap; a
-   translation run gets a short faint tick. Cells are transparent and carry the
-   per-section tooltip. Sits under the drag handles (z 3). */
 .secOverlay { position: absolute; inset: 0; z-index: 2; }
 .secCell { position: absolute; top: 0; bottom: 0; transition: background-color .12s; }
 .secCell::before {
   content: ""; position: absolute; top: 0; left: 0;
 }
-.secCell.headed::before {
-  width: 2px; height: 15px; border-radius: 0 0 2px 2px;
+.secCell.plain::before {
+  width: 2px; height: 16px; border-radius: 0 0 2px 2px;
   background: var(--gold-bright); box-shadow: 0 0 7px rgba(231, 200, 120, .65);
 }
-.secCell.headed::after {
+.secCell.plain::after {
   content: ""; position: absolute; top: 0; left: 1px; transform: translateX(-50%);
   width: 5px; height: 5px; border-radius: 50%;
   background: var(--gold-bright); box-shadow: 0 0 6px rgba(231, 200, 120, .8);
 }
-.secCell.plain::before {
-  width: 1px; height: 8px; background: rgba(239, 229, 208, .42);
+.secCell.headed::before {
+  width: 2px; height: 9px; border-radius: 0 0 2px 2px;
+  background: var(--gold-deep); box-shadow: 0 0 4px rgba(160, 125, 47, .5);
 }
 .secCell.first::before, .secCell.first::after { left: 2px; }
 .secCell:hover { background-color: rgba(255, 255, 255, .05); }
@@ -373,18 +369,16 @@ button.sm { padding: 3px 9px; font-size: 12px; }
 .splitActions { margin-top: 10px; }
 .splitLegend { display: inline-flex; align-items: center; gap: 10px; font-size: 12.5px; }
 .lgItem { display: inline-flex; align-items: center; gap: 6px; }
-/* swatches mirror the bar's top-hanging marks: a tall gold tick for a
-   subheading start, a short faint tick for a translation run. */
 .swatch { width: 12px; height: 13px; display: inline-block; position: relative; flex: none; }
 .swatch::before {
   content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
 }
-.swatch.headed::before {
+.swatch.plain::before {
   width: 2px; height: 12px; background: var(--gold-bright);
   box-shadow: 0 0 5px rgba(231, 200, 120, .6); border-radius: 0 0 2px 2px;
 }
-.swatch.plain::before {
-  width: 1px; height: 7px; background: rgba(239, 229, 208, .5);
+.swatch.headed::before {
+  width: 2px; height: 7px; background: var(--gold-deep); border-radius: 0 0 2px 2px;
 }
 .lgSep { width: 1px; height: 12px; background: var(--line); display: inline-block; }
 .assignmentList { margin-top: 12px; }

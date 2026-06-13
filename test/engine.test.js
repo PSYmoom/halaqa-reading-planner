@@ -2,7 +2,12 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 import {
-  isHeading, wordCount, buildSections, pickWeek, computeSplits, buildAssignments,
+  isHeading,
+  wordCount,
+  buildSections,
+  pickWeek,
+  computeSplits,
+  buildAssignments,
 } from "../src/utils/engine.js";
 
 // Fixture: n sections, one ayah each (ayah i+1), with the given word counts.
@@ -65,10 +70,13 @@ describe("buildSections", () => {
   });
   test("splits at a heading carrying a trailing honorific", () => {
     const sections = buildSections([
-      { ayah: 176, text: "...all that you do.)\nComforting the Messenger of Allah (ﷺ)\nAllah said to His Prophet." },
+      {
+        ayah: 176,
+        text: "...all that you do.)\nComforting the Messenger of Allah (ﷺ)\nAllah said to His Prophet.",
+      },
     ]);
     assert.equal(sections.length, 2);
-    assert.equal(sections[0].title, "Ayat 176");          // the translation, untitled
+    assert.equal(sections[0].title, "Ayat 176"); // the translation, untitled
     assert.equal(sections[1].title, "Comforting the Messenger of Allah (ﷺ)");
   });
   test("skips empty ayah texts", () => {
@@ -126,8 +134,10 @@ describe("computeSplits", () => {
       assert.ok(s >= prev && s <= week.length, `cut ${s} out of order or range`);
       prev = s;
     }
-    const total = buildAssignments(week, ["A", "B", "C"], splits)
-      .reduce((sum, a) => sum + a.words, 0);
+    const total = buildAssignments(week, ["A", "B", "C"], splits).reduce(
+      (sum, a) => sum + a.words,
+      0,
+    );
     assert.equal(total, 200);
   });
   test("monotonic in weight: heavier never reads less", () => {

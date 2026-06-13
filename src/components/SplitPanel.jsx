@@ -4,7 +4,8 @@ import { SplitBar } from "./SplitBar.jsx";
 
 // One reader's portion: name, totals, and the sections it spans.
 function AssignmentRow({ assignment, color }) {
-  const meta = `· ${ayahRange(assignment)} · ${assignment.words.toLocaleString()} words` +
+  const meta =
+    `· ${ayahRange(assignment)} · ${assignment.words.toLocaleString()} words` +
     ` · ${readingTime(assignment.words)} · ${assignment.sections.length} section(s)`;
   return (
     <div className="member">
@@ -15,7 +16,10 @@ function AssignmentRow({ assignment, color }) {
       </div>
       {assignment.sections.map((s, i) => (
         <div className="sec" key={i}>
-          • {ayahRange(s)} <span className="w">({sectionHeading(s)} · {s.words}w)</span>
+          • {ayahRange(s)}{" "}
+          <span className="w">
+            ({sectionHeading(s)} · {s.words}w)
+          </span>
         </div>
       ))}
       {!assignment.sections.length && (
@@ -36,14 +40,28 @@ export function SplitPanel({ week, memberCount }) {
         <p className="muted">No content yet. Pick a surah/start ayah.</p>
       ) : (
         <>
-          <SplitBar weekSections={weekSections} assignments={assignments}
-            splits={splits} setSplits={setSplits} />
+          <SplitBar
+            weekSections={weekSections}
+            assignments={assignments}
+            splits={splits}
+            setSplits={setSplits}
+          />
           <div className="row splitActions">
-            {manualSplits && <button className="sm" onClick={resetSplits}>↺ Re-balance by weight</button>}
+            {manualSplits && (
+              <button className="sm" onClick={resetSplits}>
+                ↺ Re-balance by weight
+              </button>
+            )}
             <span className="spacer" />
             <span className="splitLegend muted">
-              <span className="lgItem"><i className="swatch headed" />subheading</span>
-              <span className="lgItem"><i className="swatch plain" />translation</span>
+              <span className="lgItem">
+                <i className="swatch plain" />
+                translation
+              </span>
+              <span className="lgItem">
+                <i className="swatch headed" />
+                subheading
+              </span>
               <span className="lgSep" />
               {memberCount} readers
             </span>

@@ -12,29 +12,41 @@ export function SplitBar({ weekSections, assignments, splits, setSplits }) {
   }, [weekSections]);
   const total = pre[pre.length - 1] || 1;
 
-  const onDrag = useCallback((idx, clientX) => {
-    const el = ref.current; if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const frac = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
-    const targetWords = frac * total;
-    // snap to nearest section boundary, constrained between neighbours
-    const lo = idx === 0 ? 0 : splits[idx - 1];
-    const hi = idx === splits.length - 1 ? weekSections.length : splits[idx + 1];
-    let best = lo, bestD = Infinity;
-    for (let k = lo; k <= hi; k++) {
-      const d = Math.abs(pre[k] - targetWords);
-      if (d < bestD) { bestD = d; best = k; }
-    }
-    if (best !== splits[idx]) {
-      const next = splits.slice(); next[idx] = best; setSplits(next);
-    }
-  }, [splits, pre, total, weekSections.length, setSplits]);
+  const onDrag = useCallback(
+    (idx, clientX) => {
+      const el = ref.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const frac = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width));
+      const targetWords = frac * total;
+      // snap to nearest section boundary, constrained between neighbours
+      const lo = idx === 0 ? 0 : splits[idx - 1];
+      const hi = idx === splits.length - 1 ? weekSections.length : splits[idx + 1];
+      let best = lo,
+        bestD = Infinity;
+      for (let k = lo; k <= hi; k++) {
+        const d = Math.abs(pre[k] - targetWords);
+        if (d < bestD) {
+          bestD = d;
+          best = k;
+        }
+      }
+      if (best !== splits[idx]) {
+        const next = splits.slice();
+        next[idx] = best;
+        setSplits(next);
+      }
+    },
+    [splits, pre, total, weekSections.length, setSplits],
+  );
 
   // The window listeners are registered once per drag, so route them through a
   // ref to the latest onDrag — otherwise the whole drag would close over the
   // splits from pointerdown-time and snap against stale neighbours.
   const onDragRef = useRef(onDrag);
-  useEffect(() => { onDragRef.current = onDrag; });
+  useEffect(() => {
+    onDragRef.current = onDrag;
+  });
 
   const startDrag = (idx) => (e) => {
     e.preventDefault();
@@ -55,16 +67,24 @@ export function SplitBar({ weekSections, assignments, splits, setSplits }) {
         const pct = (a.words / total) * 100;
         return (
           <Fragment key={a.name}>
-            <div className="seg" style={{ width: pct + "%", background: COLORS[i % COLORS.length] }}
-                 title={`${a.name}: ${a.words} words, ${a.sections.length} sections`}>
+            <div
+              className="seg"
+              style={{ width: pct + "%", background: COLORS[i % COLORS.length] }}
+              title={`${a.name}: ${a.words} words, ${a.sections.length} sections`}
+            >
               {pct > 8 && (
                 <span className="segLabel">
-                  <b>{a.name}</b>{pct > 15 && <em>{a.words}w</em>}
+                  <b>{a.name}</b>
+                  {pct > 15 && <em>{a.words}w</em>}
                 </span>
               )}
             </div>
             {i < assignments.length - 1 && (
-              <div className="handle" onPointerDown={startDrag(i)} title="Drag to move sections between people" />
+              <div
+                className="handle"
+                onPointerDown={startDrag(i)}
+                title="Drag to move sections between people"
+              />
             )}
           </Fragment>
         );
@@ -78,10 +98,12 @@ export function SplitBar({ weekSections, assignments, splits, setSplits }) {
           const heading = sectionHeading(s);
           const headed = heading !== "Translation";
           return (
-            <div key={i}
-                 className={"secCell" + (headed ? " headed" : " plain") + (i === 0 ? " first" : "")}
-                 style={{ left: (pre[i] / total) * 100 + "%", width: (s.words / total) * 100 + "%" }}
-                 title={`${ayahRange(s)} · ${heading} · ${s.words}w`} />
+            <div
+              key={i}
+              className={"secCell" + (headed ? " headed" : " plain") + (i === 0 ? " first" : "")}
+              style={{ left: (pre[i] / total) * 100 + "%", width: (s.words / total) * 100 + "%" }}
+              title={`${ayahRange(s)} · ${heading} · ${s.words}w`}
+            />
           );
         })}
       </div>

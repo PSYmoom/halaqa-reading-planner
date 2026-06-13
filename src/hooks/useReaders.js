@@ -19,7 +19,7 @@ function readerIndexOf(bucket, override) {
  */
 export function useReaders(config) {
   const [readerOverride, setReaderOverride] = useState({}); // { [bucketId]: memberName }
-  const [bucketsOff, setBucketsOff] = useState({});         // { [bucketId]: true } → skipped this week
+  const [bucketsOff, setBucketsOff] = useState({}); // { [bucketId]: true } → skipped this week
 
   const toggleBucket = (id) => setBucketsOff((off) => ({ ...off, [id]: !off[id] }));
   const setReaderForBucket = (bucketId, member) =>
@@ -35,7 +35,7 @@ export function useReaders(config) {
       return i < 0 ? null : b.members[i];
     };
     const readersByBucket = Object.fromEntries(
-      config.buckets.map((b) => [b.id, bucketsOff[b.id] ? null : readerOf(b)])
+      config.buckets.map((b) => [b.id, bucketsOff[b.id] ? null : readerOf(b)]),
     );
     const members = config.buckets.map((b) => readersByBucket[b.id]).filter(Boolean);
     const weights = members.map((m) => config.weights[m] ?? DEFAULT_WEIGHT);
@@ -43,8 +43,7 @@ export function useReaders(config) {
 
     // An override is "active" when a bucket resolves to a different reader than the plain rotation.
     const overrideActive = config.buckets.some(
-      (b) => !bucketsOff[b.id] &&
-        readerIndexOf(b, readerOverride[b.id]) !== readerIndexOf(b, null)
+      (b) => !bucketsOff[b.id] && readerIndexOf(b, readerOverride[b.id]) !== readerIndexOf(b, null),
     );
 
     return { readersByBucket, members, weights, offCount, overrideActive };
@@ -65,8 +64,16 @@ export function useReaders(config) {
   };
 
   return {
-    readersByBucket, members, weights, offCount, overrideActive,
-    bucketsOff, toggleBucket, setReaderForBucket, clearOverrides,
-    rotateBuckets, resetWeek,
+    readersByBucket,
+    members,
+    weights,
+    offCount,
+    overrideActive,
+    bucketsOff,
+    toggleBucket,
+    setReaderForBucket,
+    clearOverrides,
+    rotateBuckets,
+    resetWeek,
   };
 }

@@ -13,7 +13,8 @@ export const secCacheKey = (s) => `halaqa-sections-v${CACHE_VERSION}-${EDITION}-
  */
 export function normalizeConfig(cfg) {
   const seen = new Set();
-  const src = Array.isArray(cfg.buckets) && cfg.buckets.length ? cfg.buckets : DEFAULT_CONFIG.buckets;
+  const src =
+    Array.isArray(cfg.buckets) && cfg.buckets.length ? cfg.buckets : DEFAULT_CONFIG.buckets;
   const buckets = src.map((b, i) => {
     let id = b && typeof b.id === "string" ? b.id : "";
     if (!id || seen.has(id)) id = `b${i}_${Math.random().toString(36).slice(2, 8)}`;

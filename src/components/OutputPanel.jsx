@@ -16,9 +16,10 @@ export function OutputPanel({ message, surah, memberCount, week, nextAyah, onMar
   };
 
   const readerLabel = `${memberCount} reader${memberCount === 1 ? "" : "s"}`;
-  const coverage = week.weekStart != null
-    ? ` · Ayat ${week.weekStart}–${week.weekEnd} · ${readingTime(week.totalWords)} read`
-    : "";
+  const coverage =
+    week.weekStart != null
+      ? ` · Ayat ${week.weekStart}–${week.weekEnd} · ${readingTime(week.totalWords)} read`
+      : "";
 
   return (
     <div className="card output">
@@ -26,16 +27,31 @@ export function OutputPanel({ message, surah, memberCount, week, nextAyah, onMar
         <div className="outputMain">
           <div className="outputHead">
             <h2>WhatsApp message</h2>
-            <span className="outputMeta">Preview · {readerLabel}{coverage} · Surah {surahName(surah)}</span>
+            <span className="outputMeta">
+              Preview · {readerLabel}
+              {coverage} · Surah {surahName(surah)}
+            </span>
           </div>
           <textarea value={message} readOnly />
         </div>
         <div className="outputSide">
-          <button className="primary big" onClick={copyMessage}>📋 Copy message</button>
-          <button className="markBtn" onClick={onMarkSent}
-                  title="Rotate each bucket to its next reader and move the start ayah forward">✓ Mark as sent</button>
-          <p className="outputNote muted">“Mark as sent” rotates each bucket to its next reader and moves the start ayah forward for next week.</p>
-          <div className="nextNote">Next week starts at <b className="stat">Ayat {nextAyah}</b></div>
+          <button className="primary big" onClick={copyMessage}>
+            📋 Copy message
+          </button>
+          <button
+            className="markBtn"
+            onClick={onMarkSent}
+            title="Rotate each bucket to its next reader and move the start ayah forward"
+          >
+            ✓ Mark as sent
+          </button>
+          <p className="outputNote muted">
+            “Mark as sent” rotates each bucket to its next reader and moves the start ayah forward
+            for next week.
+          </p>
+          <div className="nextNote">
+            Next week starts at <b className="stat">Ayat {nextAyah}</b>
+          </div>
         </div>
       </div>
     </div>

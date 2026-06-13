@@ -25,7 +25,7 @@ export default function App() {
 
   const message = useMemo(
     () => generateMessage(config.surah, week.assignments, config.templates),
-    [config.surah, week.assignments, config.templates]
+    [config.surah, week.assignments, config.templates],
   );
 
   const nextAyah = (week.weekEnd || config.startAyah) + 1;
@@ -39,30 +39,43 @@ export default function App() {
     <div className="wrap">
       <Masthead surah={config.surah} />
 
-      <CommandBar config={config} setConfig={setConfig}
-                  sections={sections} loading={loading} error={error}
-                  members={readers.members}
-                  overrideActive={readers.overrideActive}
-                  offCount={readers.offCount}
-                  week={week} />
+      <CommandBar
+        config={config}
+        setConfig={setConfig}
+        sections={sections}
+        loading={loading}
+        error={error}
+        members={readers.members}
+        overrideActive={readers.overrideActive}
+        offCount={readers.offCount}
+        week={week}
+      />
 
       <div className="grid">
-        <BucketEditor config={config} setConfig={setConfig}
-                      readersByBucket={readers.readersByBucket}
-                      setReaderForBucket={readers.setReaderForBucket}
-                      bucketsOff={readers.bucketsOff}
-                      toggleBucket={readers.toggleBucket}
-                      hasOverrides={readers.overrideActive}
-                      clearOverrides={readers.clearOverrides} />
+        <BucketEditor
+          config={config}
+          setConfig={setConfig}
+          readersByBucket={readers.readersByBucket}
+          setReaderForBucket={readers.setReaderForBucket}
+          bucketsOff={readers.bucketsOff}
+          toggleBucket={readers.toggleBucket}
+          hasOverrides={readers.overrideActive}
+          clearOverrides={readers.clearOverrides}
+        />
         <SplitPanel week={week} memberCount={readers.members.length} />
       </div>
 
       <TemplatesPanel config={config} setConfig={setConfig} flash={flash} />
 
-      <OutputPanel message={message} surah={config.surah}
-                   memberCount={readers.members.length}
-                   week={week} nextAyah={nextAyah}
-                   onMarkSent={markSent} flash={flash} />
+      <OutputPanel
+        message={message}
+        surah={config.surah}
+        memberCount={readers.members.length}
+        week={week}
+        nextAyah={nextAyah}
+        onMarkSent={markSent}
+        flash={flash}
+      />
 
       {toast && <div className="toast">{toast}</div>}
     </div>

@@ -6,6 +6,6 @@ export function filterOptions(options, query) {
     (o) =>
       o.label.toLowerCase().includes(s) ||
       String(o.value).includes(s) ||
-      (o.hint && o.hint.toLowerCase().includes(s))
+      (o.hint && o.hint.toLowerCase().includes(s)),
   );
 }
