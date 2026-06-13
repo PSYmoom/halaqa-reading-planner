@@ -23,7 +23,7 @@ export default function App() {
   const { sections, loading, error } = useSurahSections(config.surah);
   const readers = useReaders(config);
   const week = useWeekPlan(sections, config, readers.members, readers.weights);
-  const { toast, flash } = useToast();
+  const { toast, flash, dismiss } = useToast();
 
   const message = useMemo(
     () => generateMessage(config.surah, week.assignments, config.templates),
@@ -95,7 +95,22 @@ export default function App() {
 
       <SettingsPanel config={config} setConfig={setConfig} flash={flash} />
 
-      {toast && <div className="toast">{toast}</div>}
+      {toast && (
+        <div className="toast">
+          <span>{toast.message}</span>
+          {toast.action && (
+            <button
+              className="toastAction"
+              onClick={() => {
+                toast.action.onClick();
+                dismiss();
+              }}
+            >
+              {toast.action.label}
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

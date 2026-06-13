@@ -44,8 +44,10 @@ export function SettingsPanel({ config, setConfig, flash }) {
     const reader = new FileReader();
     reader.onload = () => {
       try {
-        setConfig(normalizeConfig(JSON.parse(reader.result)));
-        flash("Config imported");
+        const next = normalizeConfig(JSON.parse(reader.result));
+        const previous = config; // snapshot before replacing, so the import is undoable
+        setConfig(next);
+        flash("Config imported", { label: "Undo", onClick: () => setConfig(previous) });
       } catch {
         flash("Invalid config file");
       }
@@ -56,7 +58,9 @@ export function SettingsPanel({ config, setConfig, flash }) {
 
   return (
     <details className="card settingsCard">
-      <summary>Settings</summary>
+      <summary>
+        <h2>Settings</h2>
+      </summary>
       <div className="settingsBody">
         <div className="settingRow">
           <label htmlFor="set-wpm" className="settingLabel">

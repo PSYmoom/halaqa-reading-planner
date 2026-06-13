@@ -109,7 +109,7 @@ export function BucketEditor({
     setDrag(payload);
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", "");
-    const ghost = e.currentTarget.closest(payload.kind === "member" ? ".memberChip" : ".bucketRow");
+    const ghost = e.currentTarget.closest(payload.kind === "member" ? ".memberRow" : ".bucketRow");
     if (ghost) e.dataTransfer.setDragImage(ghost, 12, 12);
   };
   const endDrag = () => {
@@ -141,6 +141,7 @@ export function BucketEditor({
   const onBucketEndOver = (bi, len) => (e) => {
     if (dragRef.current?.kind !== "member") return;
     e.preventDefault();
+    e.stopPropagation();
     setOverIf({ kind: "member", bi, index: len });
   };
   const onBucketEndDrop = (bi, len) => (e) => {
@@ -152,7 +153,13 @@ export function BucketEditor({
   const onBucketRowOver = (bi) => (e) => {
     if (dragRef.current?.kind !== "bucket") return;
     e.preventDefault();
+    e.stopPropagation();
     setOverIf({ kind: "bucket", bi });
+  };
+
+  const onContainerDragOver = () => setOverIf(null);
+  const onContainerDragLeave = (e) => {
+    if (!e.currentTarget.contains(e.relatedTarget)) setOverIf(null);
   };
   const onBucketRowDrop = (bi) => (e) => {
     if (dragRef.current?.kind !== "bucket") return;
@@ -162,7 +169,7 @@ export function BucketEditor({
   };
 
   return (
-    <div className="card">
+    <div className="card" onDragOver={onContainerDragOver} onDragLeave={onContainerDragLeave}>
       <h2>Availability buckets &amp; weights</h2>
 
       {draft.buckets.map((b, bi) => {
@@ -200,16 +207,16 @@ export function BucketEditor({
             >
               {off ? "Off" : "On"}
             </button>
-            <div className="row chips">
+            <div className="chips">
               {b.members.map((m, idx) => {
                 const isReader = m === reader;
                 const isDragging = drag?.kind === "member" && drag.bi === bi && drag.index === idx;
                 const isBefore = over?.kind === "member" && over.bi === bi && over.index === idx;
                 return (
-                  <span
+                  <div
                     key={m}
                     className={
-                      "memberChip" +
+                      "memberRow" +
                       (isReader ? " reader" : "") +
                       (isDragging ? " dragging" : "") +
                       (isBefore ? " dropBefore" : "")
@@ -229,11 +236,13 @@ export function BucketEditor({
                     <span
                       className="mName"
                       onClick={() => setReaderForBucket(b.id, m)}
-                      title="Use as this week's reader"
+                      title={`Click to make "${m}" this week's reader`}
                     >
                       {m}
                     </span>
-                    {isReader && <span className="tag next">reads</span>}
+                    <span className="readsSlot">
+                      {isReader && <span className="tag next">reads</span>}
+                    </span>
                     <input
                       type="range"
                       min="1"
@@ -242,14 +251,14 @@ export function BucketEditor({
                       title={`weight ${draft.weights[m] ?? DEFAULT_WEIGHT}`}
                       onChange={(e) => setWeight(m, +e.target.value)}
                     />
-                    <b className="stat">{draft.weights[m] ?? DEFAULT_WEIGHT}</b>
+                    <b className="stat wt">{draft.weights[m] ?? DEFAULT_WEIGHT}</b>
                     <span className="x" onClick={() => removeMember(bi, m)} title="Remove">
                       ×
                     </span>
-                  </span>
+                  </div>
                 );
               })}
-              <span
+              <div
                 className={"dropEnd" + (isEndOver ? " dropBefore" : "")}
                 onDragOver={onBucketEndOver(bi, b.members.length)}
                 onDrop={onBucketEndDrop(bi, b.members.length)}
@@ -275,9 +284,9 @@ export function BucketEditor({
                     + member
                   </button>
                 )}
-              </span>
+              </div>
             </div>
-            <span className="x" onClick={() => removeBucket(bi)} title="Delete bucket">
+            <span className="x bucketDelete" onClick={() => removeBucket(bi)} title="Delete bucket">
               <svg
                 className="trashIcon"
                 viewBox="0 0 24 24"

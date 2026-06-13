@@ -102,7 +102,7 @@ h2::before {
   -webkit-text-fill-color: var(--gold);
 }
 
-.wrap { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 18px 22px 56px; }
+.wrap { position: relative; z-index: 1; max-width: 1320px; margin: 0 auto; padding: 18px 22px 56px; }
 
 /* ── Masthead ───────────────────────────────────────────────── */
 .masthead {
@@ -138,7 +138,10 @@ h2::before {
 .lede { color: var(--muted); margin: 16px 0 18px; font-size: 13.5px; }
 
 /* ── Layout ─────────────────────────────────────────────────── */
-.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: stretch; }
+.grid {
+  display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  gap: 16px; align-items: stretch;
+}
 @media (max-width: 880px) { .grid { grid-template-columns: 1fr; } }
 
 /* full-width command bar — lifted above the grid cards so its dropdowns aren't covered */
@@ -378,7 +381,7 @@ button.sm { padding: 3px 9px; font-size: 12px; }
 .tmplDivider span {
   font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--faint); white-space: nowrap;
 }
-.tmplDivider i { color: var(--gold); font-style: normal; opacity: .75; margin-right: 2px; }
+.tmplDivider i { color: var(--gold); font-style: normal; opacity: .75; margin-right: 7px; }
 .outputSide { display: flex; flex-direction: column; gap: 10px; }
 .primary.big { width: 100%; padding: 13px 14px; font-size: 15.5px; border-radius: 10px; }
 .markBtn { width: 100%; transition: border-color .15s, background .15s, box-shadow .15s, transform .05s; }
@@ -420,29 +423,36 @@ button.sm { padding: 3px 9px; font-size: 12px; }
 .bucketToggle:hover { border-color: var(--accent); filter: brightness(1.12); }
 .bucketToggle.isOff { border-color: var(--line); color: var(--faint); background: transparent; }
 .bucketToggle.isOff:hover { border-color: var(--gold-deep); color: var(--muted); filter: none; }
-.chips { flex: 1; gap: 6px; }
 .bhandle { cursor: grab; color: var(--muted); font-size: 15px; line-height: 1; padding: 2px 3px; user-select: none; }
 .bhandle:active { cursor: grabbing; }
-.memberChip {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: rgba(255, 255, 255, .02); border: 1px solid var(--line);
-  border-radius: 999px; padding: 2px 6px 2px 4px; font-size: 13px;
-  transition: border-color .15s, box-shadow .15s, opacity .12s;
+
+.chips {
+  flex: 1; display: grid; align-content: start; gap: 3px 8px;
+  grid-template-columns: auto minmax(0, 6em) auto minmax(96px, 1.4fr) auto auto;
 }
-.memberChip.reader { border-color: var(--accent); box-shadow: 0 0 0 1px rgb(var(--accent-rgb) / .25); }
-.memberChip.dragging { opacity: .35; }
-.memberChip.dropBefore { box-shadow: -3px 0 0 0 var(--gold-bright); }
-.memberChip input[type=range] { width: 60px; accent-color: var(--accent); }
-.grip { cursor: grab; color: var(--faint); font-size: 14px; line-height: 1; padding: 0 1px; user-select: none; }
+.memberRow {
+  grid-column: 1 / -1; display: grid; grid-template-columns: subgrid;
+  align-items: center; min-height: 28px; border-radius: 7px;
+  transition: background .15s, box-shadow .12s, opacity .12s;
+}
+.memberRow.reader { background: rgb(var(--accent-rgb) / .1); box-shadow: inset 2px 0 0 0 var(--accent); }
+.memberRow.dragging { opacity: .35; }
+.memberRow.dropBefore { box-shadow: 0 -3px 0 0 var(--gold-bright); }
+.memberRow input[type=range] { width: 100%; accent-color: var(--accent); }
+.readsSlot { display: inline-flex; justify-self: start; }
+.grip { cursor: grab; color: var(--faint); font-size: 14px; line-height: 1; padding: 0 2px 0 10px; user-select: none; justify-self: start; }
 .grip:active { cursor: grabbing; }
-.mName { cursor: pointer; padding: 0 1px; }
+.mName { cursor: pointer; padding: 0 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .mName:hover { color: var(--gold-bright); }
-.dropEnd { display: inline-flex; align-items: center; min-width: 30px; padding: 0 2px; border-radius: 999px; }
-.dropEnd:hover { background: rgb(var(--gold-rgb) / .04); }
-.dropEnd.dropBefore { box-shadow: -3px 0 0 0 var(--gold-bright); }   /* "insert at end" marker */
+.wt { justify-self: end; min-width: 1.3em; text-align: right; }
+.dropEnd { grid-column: 1 / -1; display: flex; align-items: center; min-height: 26px; padding: 1px 2px; border-radius: 7px; }
+.dropEnd.dropBefore { box-shadow: 0 -3px 0 0 var(--gold-bright); }   /* "insert at end" marker (during drag) */
 .addMember { width: 134px; padding: 3px 11px; font-size: 13px; border-radius: 999px; border-color: var(--gold-deep); }
 .x { cursor: pointer; color: var(--faint); padding: 0 4px; transition: color .15s; }
 .x:hover { color: var(--danger); }
+/* the × glyph centres on the font's math axis, which renders low next to the
+   cap-height value/slider — nudge it onto the row's optical centreline */
+.memberRow .x { justify-self: center; display: inline-flex; align-items: center; justify-content: center; padding: 0 2px; line-height: 1; transform: translateY(-1.5px); }
 .trashIcon { width: 14px; height: 14px; display: block; }
 
 .saveBar { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 11px; border-top: 1px solid var(--line); }
@@ -538,15 +548,23 @@ button.sm { padding: 3px 9px; font-size: 12px; }
 /* ── Misc ───────────────────────────────────────────────────── */
 .toast {
   position: fixed; bottom: 22px; left: 0; right: 0; margin: 0 auto; width: fit-content; z-index: 50;
+  display: inline-flex; align-items: center; gap: 14px;
   background: linear-gradient(180deg, var(--gold-bright), var(--gold)); color: #2a2008;
-  padding: 10px 20px; border-radius: 999px; font-weight: 600;
+  padding: 9px 12px 9px 20px; border-radius: 999px; font-weight: 600;
   box-shadow: 0 10px 30px -8px rgb(var(--gold-rgb) / .5); animation: rise .3s ease both;
 }
+/* the action (e.g. Undo) reads as a button on the gold toast */
+.toastAction {
+  background: rgba(0, 0, 0, .14); color: #2a2008;
+  border: 1px solid rgba(0, 0, 0, .32); border-radius: 999px;
+  padding: 3px 13px; font-size: 12px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .05em;
+}
+.toastAction:hover { background: rgba(0, 0, 0, .24); border-color: rgba(0, 0, 0, .5); }
 .err { background: rgb(var(--danger-rgb) / .12); border: 1px solid var(--danger); color: #f2c2b8; padding: 10px 12px; border-radius: 8px; }
-details summary { cursor: pointer; color: var(--gold); font-size: 12px; text-transform: uppercase; letter-spacing: .1em; list-style: none; }
+details summary { cursor: pointer; list-style: none; }
 details summary::-webkit-details-marker { display: none; }
-details summary::before { content: "۞ "; color: var(--gold); opacity: .8; }
-
+details summary h2 { margin: 0; }
 /* page scrollbar */
 ::-webkit-scrollbar { width: 12px; height: 12px; }
 ::-webkit-scrollbar-thumb { background: #1c2c38; border-radius: 10px; border: 3px solid var(--bg); }

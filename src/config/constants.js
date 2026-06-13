@@ -153,6 +153,8 @@ export const WORD_BUDGET = { MIN: 500, MAX: 14000 };
 
 // How long a toast notification stays on screen.
 export const TOAST_MS = 1600;
+// Longer for a toast that carries an action (e.g. "Undo"), so there's time to use it.
+export const TOAST_ACTION_MS = 8000;
 
 // Weight given to a member who hasn't had their slider touched yet.
 export const DEFAULT_WEIGHT = 5;
