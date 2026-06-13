@@ -1,5 +1,6 @@
 import { Fragment, useRef, useMemo, useEffect, useCallback } from "react";
-import { COLORS } from "../constants.js";
+import { COLORS } from "../config/constants.js";
+import { ayahRange, sectionHeading } from "../utils/message.js";
 
 /** The stacked, draggable split bar. Dividers snap to section boundaries. */
 export function SplitBar({ weekSections, assignments, splits, setSplits }) {
@@ -56,7 +57,11 @@ export function SplitBar({ weekSections, assignments, splits, setSplits }) {
           <Fragment key={a.name}>
             <div className="seg" style={{ width: pct + "%", background: COLORS[i % COLORS.length] }}
                  title={`${a.name}: ${a.words} words, ${a.sections.length} sections`}>
-              {pct > 8 ? `${a.name} · ${a.words}w` : ""}
+              {pct > 8 && (
+                <span className="segLabel">
+                  <b>{a.name}</b>{pct > 15 && <em>{a.words}w</em>}
+                </span>
+              )}
             </div>
             {i < assignments.length - 1 && (
               <div className="handle" onPointerDown={startDrag(i)} title="Drag to move sections between people" />
@@ -64,6 +69,22 @@ export function SplitBar({ weekSections, assignments, splits, setSplits }) {
           </Fragment>
         );
       })}
+      {/* Section structure, integrated into the same bar as marks hanging from
+          the top edge: a tall bright tick where each subheading begins, a short
+          faint tick for a translation run. Each transparent cell also carries
+          the per-section tooltip, so dragging a divider isn't guesswork. */}
+      <div className="secOverlay">
+        {weekSections.map((s, i) => {
+          const heading = sectionHeading(s);
+          const headed = heading !== "Translation";
+          return (
+            <div key={i}
+                 className={"secCell" + (headed ? " headed" : " plain") + (i === 0 ? " first" : "")}
+                 style={{ left: (pre[i] / total) * 100 + "%", width: (s.words / total) * 100 + "%" }}
+                 title={`${ayahRange(s)} · ${heading} · ${s.words}w`} />
+          );
+        })}
+      </div>
     </div>
   );
 }

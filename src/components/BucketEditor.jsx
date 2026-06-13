@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { DEFAULT_WEIGHT } from "../constants.js";
+import { DEFAULT_WEIGHT } from "../config/constants.js";
 
 let _seq = 0;
 const newId = () => `b${Date.now().toString(36)}${(_seq++).toString(36)}`;

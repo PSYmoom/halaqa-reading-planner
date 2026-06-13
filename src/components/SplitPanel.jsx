@@ -1,11 +1,11 @@
-import { COLORS } from "../constants.js";
-import { ayahRange, readingTime } from "../message.js";
+import { COLORS } from "../config/constants.js";
+import { ayahRange, readingTime, sectionHeading } from "../utils/message.js";
 import { SplitBar } from "./SplitBar.jsx";
 
 // One reader's portion: name, totals, and the sections it spans.
 function AssignmentRow({ assignment, color }) {
   const meta = `· ${ayahRange(assignment)} · ${assignment.words.toLocaleString()} words` +
-               ` · ${readingTime(assignment.words)} · ${assignment.sections.length} section(s)`;
+    ` · ${readingTime(assignment.words)} · ${assignment.sections.length} section(s)`;
   return (
     <div className="member">
       <div className="head">
@@ -14,7 +14,9 @@ function AssignmentRow({ assignment, color }) {
         <span className="muted">{meta}</span>
       </div>
       {assignment.sections.map((s, i) => (
-        <div className="sec" key={i}>• {s.title} <span className="w">({s.words}w)</span></div>
+        <div className="sec" key={i}>
+          • {ayahRange(s)} <span className="w">({sectionHeading(s)} · {s.words}w)</span>
+        </div>
       ))}
       {!assignment.sections.length && (
         <div className="sec warn">No sections — increase the word budget or reduce readers.</div>
@@ -35,11 +37,16 @@ export function SplitPanel({ week, memberCount }) {
       ) : (
         <>
           <SplitBar weekSections={weekSections} assignments={assignments}
-                    splits={splits} setSplits={setSplits} />
+            splits={splits} setSplits={setSplits} />
           <div className="row splitActions">
             {manualSplits && <button className="sm" onClick={resetSplits}>↺ Re-balance by weight</button>}
             <span className="spacer" />
-            <span className="muted splitNote">{memberCount} readers · weights drive the default split</span>
+            <span className="splitLegend muted">
+              <span className="lgItem"><i className="swatch headed" />subheading</span>
+              <span className="lgItem"><i className="swatch plain" />translation</span>
+              <span className="lgSep" />
+              {memberCount} readers
+            </span>
           </div>
           <div className="assignmentList">
             {assignments.map((a, i) => (

@@ -1,12 +1,20 @@
 // Pure tafsir-processing engine: fetch → sort → dedup → section-split → assign.
 // No React here, so this is trivially unit-testable in Node.
-import { SMALL, CDNS } from "./constants.js";
+import { SMALL, CDNS } from "../config/constants.js";
+
+// Arabic, Arabic Supplement, and the Presentation Forms blocks (where the
+// ﷺ ligature U+FDFA lives) — used to spot Arabic script and honorific glyphs.
+const ARABIC = /[؀-ۿݐ-ݿﭐ-﷿ﹰ-ﻼ]/;
 
 /** Heuristic: is this line a Title-Case section heading (vs. prose, quote, or Arabic)? */
 export function isHeading(line) {
-  const s = line.trim();
+  // Ibn Kathir headings often carry a trailing honorific like "(ﷺ)" or
+  // "(عليه السلام)"; drop it first so its closing ")" isn't read as prose
+  // punctuation (which would reject the heading). Only strips parentheticals
+  // containing Arabic glyphs, so English asides like "...you do.)" are untouched.
+  const s = line.trim().replace(/\s*\([^)]*[؀-ۿﭐ-﷿][^)]*\)$/, "").trim();
   if (!s || s.length > 100) return false;
-  if (/[؀-ۿ]/.test(s)) return false;                      // Arabic script
+  if (ARABIC.test(s)) return false;            // Arabic script
   if (/[.!?:;,"”’)]$/.test(s)) return false;              // ends like prose
   if (/^[(«"]/.test(s)) return false;                     // quote/translation line
   const words = s.match(/[A-Za-z][A-Za-z'’-]*/g);
@@ -50,7 +58,9 @@ export function buildSections(rawAyahs) {
   }
   // keep only what the app needs (lightweight, cacheable)
   return sections.map((s) => ({
-    title: s.title || `Ayat ${s.ayahStart}`,
+    title: s.title || (s.ayahStart === s.ayahEnd
+      ? `Ayat ${s.ayahStart}`
+      : `Ayat ${s.ayahStart}–${s.ayahEnd}`),
     words: s.words,
     ayahStart: s.ayahStart,
     ayahEnd: s.ayahEnd,

@@ -3,7 +3,7 @@ import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 import {
   isHeading, wordCount, buildSections, pickWeek, computeSplits, buildAssignments,
-} from "../src/engine.js";
+} from "../src/utils/engine.js";
 
 // Fixture: n sections, one ayah each (ayah i+1), with the given word counts.
 const secs = (words) =>
@@ -19,6 +19,14 @@ describe("isHeading", () => {
   });
   test("rejects lowercase lines", () => {
     assert.equal(isHeading("the story of the cave"), false);
+  });
+  test("accepts headings with a trailing honorific, e.g. (ﷺ)", () => {
+    // The honorific's ")" must not be mistaken for prose-ending punctuation.
+    assert.equal(isHeading("Comforting the Messenger of Allah (ﷺ)"), true);
+    assert.equal(isHeading("The Story of Musa (عليه السلام)"), true);
+  });
+  test("still rejects an English parenthetical aside (no Arabic inside)", () => {
+    assert.equal(isHeading("Well-Acquainted with all that you do.)"), false);
   });
   test("rejects Arabic, quotes, empty, single-word, and over-long lines", () => {
     assert.equal(isHeading("بسم الله الرحمن الرحيم"), false);
@@ -46,8 +54,8 @@ describe("buildSections", () => {
       { ayah: 3, text: "Which was Revealed in Makkah\nSome plain prose follows here." },
     ]);
     assert.equal(sections.length, 2);
-    // identical text on ayahs 1–2 collapses into one block with a default title
-    assert.equal(sections[0].title, "Ayat 1");
+    // identical text on ayahs 1–2 collapses into one block; the default title spans the range
+    assert.equal(sections[0].title, "Ayat 1–2");
     assert.equal(sections[0].ayahStart, 1);
     assert.equal(sections[0].ayahEnd, 2);
     assert.equal(sections[0].words, 3);
@@ -55,8 +63,20 @@ describe("buildSections", () => {
     assert.equal(sections[1].title, "Which was Revealed in Makkah");
     assert.equal(sections[1].words, 5);
   });
+  test("splits at a heading carrying a trailing honorific", () => {
+    const sections = buildSections([
+      { ayah: 176, text: "...all that you do.)\nComforting the Messenger of Allah (ﷺ)\nAllah said to His Prophet." },
+    ]);
+    assert.equal(sections.length, 2);
+    assert.equal(sections[0].title, "Ayat 176");          // the translation, untitled
+    assert.equal(sections[1].title, "Comforting the Messenger of Allah (ﷺ)");
+  });
   test("skips empty ayah texts", () => {
     assert.deepEqual(buildSections([{ ayah: 1, text: "  " }]), []);
+  });
+  test("single-ayah untitled section gets a single-ayah title", () => {
+    const [s] = buildSections([{ ayah: 5, text: "Lone commentary words here" }]);
+    assert.equal(s.title, "Ayat 5");
   });
 });
 

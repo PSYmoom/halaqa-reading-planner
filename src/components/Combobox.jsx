@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo, useEffect } from "react";
-import { filterOptions } from "../filter.js";
+import { filterOptions } from "../utils/filter.js";
 
 /**
  * Searchable, scrollable, keyboard-navigable select.

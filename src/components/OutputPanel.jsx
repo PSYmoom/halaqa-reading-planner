@@ -1,5 +1,5 @@
-import { surahName } from "../constants.js";
-import { readingTime } from "../message.js";
+import { surahName } from "../config/constants.js";
+import { readingTime } from "../utils/message.js";
 
 /**
  * Full-width output — the actual product of the tool: the WhatsApp message

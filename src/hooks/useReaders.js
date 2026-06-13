@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { DEFAULT_WEIGHT } from "../constants.js";
+import { DEFAULT_WEIGHT } from "../config/constants.js";
 
 // Round-robin pick for a bucket, honoring a manual override when it names a
 // current member. Returns an index into bucket.members, or -1 for an empty

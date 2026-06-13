@@ -1,4 +1,4 @@
-import { normalizeConfig } from "../storage.js";
+import { normalizeConfig } from "../lib/storage.js";
 
 const CONFIG_FILENAME = "halaqa-config.json";
 

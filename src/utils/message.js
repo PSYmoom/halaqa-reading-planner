@@ -1,5 +1,5 @@
 // Formatting helpers and the WhatsApp message builder.
-import { surahName, quranLink, READING_WPM } from "./constants.js";
+import { surahName, quranLink, READING_WPM } from "../config/constants.js";
 
 /** Rough aloud-reading time for a word count, e.g. "~8 min" or "~1 h 5 min". */
 export function readingTime(words, wpm = READING_WPM) {
@@ -27,11 +27,18 @@ export function describe(a, prev) {
   return `Start of *${startAnchor}* till the end of *${lastTitle}*`;
 }
 
-/** Compact ayah range for an assignment, e.g. "Ayat 130" or "Ayat 130-142". */
+/** Compact ayah range for a section or assignment, e.g. "Ayat 130" or "Ayat 130–142". */
 export function ayahRange(a) {
   if (a.ayahStart == null) return "—";
-  return a.ayahStart === a.ayahEnd ? `Ayat ${a.ayahStart}` : `Ayat ${a.ayahStart}-${a.ayahEnd}`;
+  return a.ayahStart === a.ayahEnd ? `Ayat ${a.ayahStart}` : `Ayat ${a.ayahStart}–${a.ayahEnd}`;
 }
+
+/**
+ * A section's subheading, or "Translation" for plain (untitled) sections —
+ * which carry a default "Ayat …" title in any of its cached generations.
+ */
+export const sectionHeading = (s) =>
+  /^Ayat \d/.test(s.title || "") ? "Translation" : s.title;
 
 /** The full WhatsApp message: intro, one line + link per reader, outro. */
 export function generateMessage(surah, assignments, templates) {

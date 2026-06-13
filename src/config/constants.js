@@ -2,9 +2,7 @@
 
 export const EDITION = "en-tafisr-ibn-kathir";
 
-// Version of the cached sections (part of the localStorage cache key). Bump
-// whenever buildSections' output shape OR content changes — old entries are
-// simply never read again, forcing a refetch through the new code.
+// Version of the cached sections (part of the localStorage cache key). Bump whenever buildSections' output shape OR content changes
 export const CACHE_VERSION = 1;
 
 export const CDNS = [
@@ -22,8 +20,7 @@ export const surahName = (n) => SURAH_NAMES[n - 1] || `Surah ${n}`;
 // Muted "illuminated manuscript" jewel tones — gold leads, then jade, lapis, etc.
 export const COLORS = ["#c9a24b", "#3fae93", "#5b8fb0", "#bb7a64", "#9d7bb0", "#5fa88f", "#b58a4c", "#7fa9c2", "#c98f5a", "#8fae6b"];
 
-// Approximate words-per-minute for reading the tafsir ALOUD in the halaqa
-// (slower than silent reading; tafsir mixes English prose with Arabic quotes).
+// Approximate words-per-minute for reading the tafsir ALOUD in the halaqa (slower than silent reading; tafsir mixes English prose with Arabic quotes).
 export const READING_WPM = 150;
 
 // Range of the weekly word-budget slider.

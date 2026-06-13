@@ -1,5 +1,5 @@
 // localStorage persistence: config + lightweight per-surah section cache.
-import { DEFAULT_CONFIG, EDITION, CACHE_VERSION } from "./constants.js";
+import { DEFAULT_CONFIG, EDITION, CACHE_VERSION } from "../config/constants.js";
 
 export const LS_KEY = "halaqa-config-v1";
 

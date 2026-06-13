@@ -1,16 +1,16 @@
 import { useMemo } from "react";
-import { generateMessage } from "./message.js";
-import { useConfig } from "./hooks/useConfig.js";
-import { useSurahSections } from "./hooks/useSurahSections.js";
-import { useReaders } from "./hooks/useReaders.js";
-import { useWeekPlan } from "./hooks/useWeekPlan.js";
-import { useToast } from "./hooks/useToast.js";
-import { Masthead } from "./components/Masthead.jsx";
-import { CommandBar } from "./components/CommandBar.jsx";
-import { BucketEditor } from "./components/BucketEditor.jsx";
-import { SplitPanel } from "./components/SplitPanel.jsx";
-import { TemplatesPanel } from "./components/TemplatesPanel.jsx";
-import { OutputPanel } from "./components/OutputPanel.jsx";
+import { generateMessage } from "../utils/message.js";
+import { useConfig } from "../hooks/useConfig.js";
+import { useSurahSections } from "../hooks/useSurahSections.js";
+import { useReaders } from "../hooks/useReaders.js";
+import { useWeekPlan } from "../hooks/useWeekPlan.js";
+import { useToast } from "../hooks/useToast.js";
+import { Masthead } from "../components/Masthead.jsx";
+import { CommandBar } from "../components/CommandBar.jsx";
+import { BucketEditor } from "../components/BucketEditor.jsx";
+import { SplitPanel } from "../components/SplitPanel.jsx";
+import { TemplatesPanel } from "../components/TemplatesPanel.jsx";
+import { OutputPanel } from "../components/OutputPanel.jsx";
 
 /**
  * Top-level orchestrator. State and derivation live in the hooks, markup in

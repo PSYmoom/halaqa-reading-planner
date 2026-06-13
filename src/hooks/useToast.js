@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { TOAST_MS } from "../constants.js";
+import { TOAST_MS } from "../config/constants.js";
 
 /**
  * A transient notification: flash(text) shows it, and it clears itself.

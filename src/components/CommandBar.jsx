@@ -1,6 +1,6 @@
 import { useMemo } from "react";
-import { SURAH_NAMES, surahName, WORD_BUDGET } from "../constants.js";
-import { readingTime } from "../message.js";
+import { SURAH_NAMES, surahName, WORD_BUDGET } from "../config/constants.js";
+import { readingTime } from "../utils/message.js";
 import { Combobox } from "./Combobox.jsx";
 
 /**

@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
-import { pickWeek, computeSplits, buildAssignments } from "../engine.js";
-import { WORD_BUDGET } from "../constants.js";
+import { pickWeek, computeSplits, buildAssignments } from "../utils/engine.js";
+import { WORD_BUDGET } from "../config/constants.js";
 
 /**
  * The derivation pipeline for one week's plan:

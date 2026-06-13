@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { fetchSurahSections } from "../engine.js";
-import { loadCachedSections, cacheSections } from "../storage.js";
+import { fetchSurahSections } from "../utils/engine.js";
+import { loadCachedSections, cacheSections } from "../lib/storage.js";
 
 /**
  * Tafsir sections for a surah — cache-first from localStorage, falling back

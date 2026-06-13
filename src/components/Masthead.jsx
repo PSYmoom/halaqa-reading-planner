@@ -1,4 +1,4 @@
-import { surahName } from "../constants.js";
+import { surahName } from "../config/constants.js";
 
 /** Page header — brand, ornament, and the one-line description of the tool. */
 export function Masthead({ surah }) {
