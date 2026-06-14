@@ -18,7 +18,7 @@ export function isHeading(line) {
     .trim();
   if (!s || s.length > 100) return false;
   if (ARABIC.test(s)) return false; // Arabic script
-  if (/[.!?:;,"”’)]$/.test(s)) return false; // ends like prose
+  if (/[.:;,"”’)]$/.test(s)) return false;
   if (/^[(«"]/.test(s)) return false; // quote/translation line
   const words = s.match(/[A-Za-z][A-Za-z'’-]*/g);
   if (!words || words.length < 2) return false;

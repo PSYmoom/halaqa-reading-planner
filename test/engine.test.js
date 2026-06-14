@@ -23,6 +23,14 @@ describe("isHeading", () => {
   test("rejects prose (ends with punctuation)", () => {
     assert.equal(isHeading("Allah tells us about the people of the cave."), false);
   });
+  test("accepts a Title-Case question/exclamation heading", () => {
+    assert.equal(isHeading("Who Shall Gain Ultimate Victory?"), true);
+    assert.equal(isHeading("Will They Not Then Believe?"), true);
+    assert.equal(isHeading("How Great is the Reward of the Patient!"), true);
+  });
+  test("still rejects a prose question (not Title-Case)", () => {
+    assert.equal(isHeading("Do you not see how Allah sets forth a parable?"), false);
+  });
   test("rejects lowercase lines", () => {
     assert.equal(isHeading("the story of the cave"), false);
   });
