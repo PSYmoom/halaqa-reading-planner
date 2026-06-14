@@ -168,12 +168,13 @@ export const SMALL = new Set(
 
 export const DEFAULT_CONFIG = {
   // Buckets are availability tiers (how much free time each member has this season).
-  // EACH WEEK one reader is taken from EVERY bucket
-  // (round-robin within each bucket via its `ptr`), so #readers/week === #buckets.
+  // EACH WEEK one reader is taken from EVERY bucket — the front of its queue
+  // (members[0]) — so #readers/week === #buckets. On "Mark as sent" the reader
+  // moves to the back of the bucket, so the order is the rotation queue.
   buckets: [
-    { id: "b1", members: ["Ahmad"], ptr: 0 },
-    { id: "b2", members: ["Bilal", "Yusuf"], ptr: 0 },
-    { id: "b3", members: ["Khalid", "Hamza", "Idris", "Anas"], ptr: 0 },
+    { id: "b1", members: ["Ahmad"] },
+    { id: "b2", members: ["Bilal", "Yusuf"] },
+    { id: "b3", members: ["Khalid", "Hamza", "Idris", "Anas"] },
   ],
   // Example starting weights — adjust the sliders any time; these are just a sensible default.
   weights: { Ahmad: 10, Bilal: 7, Yusuf: 6, Khalid: 6, Hamza: 3, Idris: 1, Anas: 2 },

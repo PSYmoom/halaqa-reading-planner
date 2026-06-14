@@ -6,18 +6,68 @@ import { filterOptions } from "../utils/filter.js";
  * `options`: [{ value, label, hint?, key? }] — filtered on label, value and hint.
  * `allowNumber` + `onNumber` let the user commit a typed number with no matching option.
  */
-export function Combobox({ options, display, placeholder, onSelect, allowNumber, onNumber }) {
+export function Combobox({
+  options,
+  value,
+  display,
+  placeholder,
+  onSelect,
+  allowNumber,
+  onNumber,
+}) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [hi, setHi] = useState(0);
   const ref = useRef(null);
   const inputRef = useRef(null);
+  const listRef = useRef(null);
+  const opening = useRef(false); // the highlight came from opening, not arrowing
 
   const filtered = useMemo(() => filterOptions(options, q), [q, options]);
 
+  // While typing, highlight the first match. With no query (just opened), start
+  // on the currently-selected option and pull it to the TOP of the list, so it's
+  // the first row shown and you can scroll down through what follows.
   useEffect(() => {
-    setHi(0);
-  }, [q, open]);
+    if (!open) return;
+    if (q) {
+      setHi(0);
+      return;
+    }
+    let idx = filtered.findIndex((o) => o.value === value);
+    if (idx < 0 && value != null) {
+      // no exact match (e.g. a mid-section ayah) — land on the last option at/below it
+      for (let i = 0; i < filtered.length; i++) {
+        if (typeof filtered[i].value === "number" && filtered[i].value <= value) idx = i;
+      }
+    }
+    if (idx < 0) idx = 0;
+    setHi(idx);
+    opening.current = true;
+    // Scroll the LIST only (scrollIntoView would also scroll the page), pulling
+    // the selected row to the top of the dropdown.
+    const list = listRef.current,
+      el = list?.children[idx];
+    if (list && el)
+      list.scrollTop += el.getBoundingClientRect().top - list.getBoundingClientRect().top;
+  }, [q, open, filtered, value]);
+
+  // Keep the cursor visible as the arrow keys move through a long list — but
+  // don't fight the top-alignment we just did on open. Scrolls the list only.
+  useEffect(() => {
+    if (!open) return;
+    if (opening.current) {
+      opening.current = false;
+      return;
+    }
+    const list = listRef.current,
+      el = list?.children[hi];
+    if (!list || !el) return;
+    const lr = list.getBoundingClientRect(),
+      er = el.getBoundingClientRect();
+    if (er.top < lr.top) list.scrollTop += er.top - lr.top;
+    else if (er.bottom > lr.bottom) list.scrollTop += er.bottom - lr.bottom;
+  }, [hi, open]);
   useEffect(() => {
     const h = (e) => {
       if (ref.current && !ref.current.contains(e.target)) setOpen(false);
@@ -79,7 +129,7 @@ export function Combobox({ options, display, placeholder, onSelect, allowNumber,
         onKeyDown={onKey}
       />
       {open && (
-        <div className="comboList">
+        <div className="comboList" ref={listRef}>
           {filtered.length ? (
             filtered.slice(0, 500).map((o, i) => (
               <div

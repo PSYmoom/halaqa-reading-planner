@@ -45,11 +45,20 @@ function AssignmentRow({ assignment, color, wpm }) {
 
 /** The split view — the draggable divider bar plus per-reader assignment details. */
 export function SplitPanel({ week, wpm }) {
-  const { weekSections, assignments, splits, setSplits, manualSplits, resetSplits } = week;
+  const {
+    weekSections,
+    assignments,
+    splits,
+    setSplits,
+    setOrder,
+    manualSplits,
+    reordered,
+    resetSplits,
+  } = week;
 
   return (
     <div className="card">
-      <h2>Split — drag the dividers to fine-tune</h2>
+      <h2>Split — drag dividers to resize and names to reorder</h2>
       {weekSections.length === 0 ? (
         <p className="muted">No content yet. Pick a surah/start ayah.</p>
       ) : (
@@ -59,11 +68,16 @@ export function SplitPanel({ week, wpm }) {
             assignments={assignments}
             splits={splits}
             setSplits={setSplits}
+            setOrder={setOrder}
           />
           <div className="row splitActions">
-            {manualSplits && (
-              <button className="sm" onClick={resetSplits}>
-                ↺ Re-balance by weight
+            {(manualSplits || reordered) && (
+              <button
+                className="sm"
+                onClick={resetSplits}
+                title="Re-divide by weight, readers in list order"
+              >
+                ↺ Auto-balance
               </button>
             )}
             <span className="spacer" />
@@ -79,11 +93,11 @@ export function SplitPanel({ week, wpm }) {
             </span>
           </div>
           <div className="assignmentList">
-            {assignments.map((a, i) => (
+            {assignments.map((a) => (
               <AssignmentRow
                 key={a.name}
                 assignment={a}
-                color={COLORS[i % COLORS.length]}
+                color={COLORS[a.ord % COLORS.length]}
                 wpm={wpm}
               />
             ))}

@@ -6,20 +6,28 @@ export const LS_KEY = "halaqa-config-v1";
 export const secCacheKey = (s) => `halaqa-sections-v${CACHE_VERSION}-${EDITION}-${s}`;
 
 /**
- * Guard against malformed or old-schema configs (stale storage, imported files): every
- * bucket must have a unique id and a members array. Otherwise readersByBucket / bucketsOff —
- * both keyed by bucket id — collapse onto one key, making every reader identical and every
- * on/off toggle move together.
+ * Guard against malformed or old-schema configs (stale storage, imported files)
+ * Member names are be unique across the roster
  */
 export function normalizeConfig(cfg) {
   const seen = new Set();
+  const seenNames = new Set(); // member names, lowercased — uniqueness across all buckets
   const src =
     Array.isArray(cfg.buckets) && cfg.buckets.length ? cfg.buckets : DEFAULT_CONFIG.buckets;
   const buckets = src.map((b, i) => {
     let id = b && typeof b.id === "string" ? b.id : "";
     if (!id || seen.has(id)) id = `b${i}_${Math.random().toString(36).slice(2, 8)}`;
     seen.add(id);
-    return { id, members: Array.isArray(b?.members) ? b.members : [], ptr: b?.ptr || 0 };
+    const m = Array.isArray(b?.members) ? b.members : [];
+    const p = m.length ? (b?.ptr || 0) % m.length : 0;
+    const migrated = p ? [...m.slice(p), ...m.slice(0, p)] : m;
+    const members = migrated.filter((name) => {
+      const k = String(name).trim().toLowerCase();
+      if (!k || seenNames.has(k)) return false;
+      seenNames.add(k);
+      return true;
+    });
+    return { id, members };
   });
   return { ...DEFAULT_CONFIG, ...cfg, buckets };
 }

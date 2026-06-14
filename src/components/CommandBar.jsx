@@ -14,7 +14,7 @@ export function CommandBar({
   loading,
   error,
   members,
-  overrideActive,
+  togglesActive,
   offCount,
   week,
 }) {
@@ -61,6 +61,7 @@ export function CommandBar({
           <label>Surah</label>
           <Combobox
             options={surahOptions}
+            value={config.surah}
             display={`${config.surah}. ${surahName(config.surah)}`}
             placeholder="Search surah by name or number…"
             onSelect={setSurah}
@@ -70,6 +71,7 @@ export function CommandBar({
           <label>Start at Ayah</label>
           <Combobox
             options={ayahOptions}
+            value={config.startAyah}
             display={`Ayat ${config.startAyah}`}
             placeholder="Search ayah number or section…"
             allowNumber
@@ -116,7 +118,7 @@ export function CommandBar({
         <span className="pill">
           This week's readers: <b>{readerNames}</b>
         </span>
-        {overrideActive && <span className="pill warn">override active</span>}
+        {togglesActive && <span className="pill warn">Readers Adjusted</span>}
         {offCount > 0 && <span className="pill warn">{offLabel}</span>}
         {coverageLabel && <span className="pill">{coverageLabel}</span>}
         {loading && <span className="pill">Loading surah…</span>}

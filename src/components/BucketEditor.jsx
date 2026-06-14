@@ -10,17 +10,17 @@ const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
  * draft and only committed when "Save changes" is pressed.
  * - drag a member's grip (⠿) to reorder within a bucket or move between buckets
  * - drag a bucket's hamburger (☰) to reorder buckets
- * - click a member's name to make them this week's reader for that bucket (live)
+ * - click any member's name to toggle whether they read this week (live); a
+ *   bucket with nobody reading is "off"
  */
 export function BucketEditor({
   config,
   setConfig,
-  readersByBucket,
-  setReaderForBucket,
-  bucketsOff = {},
-  toggleBucket,
-  hasOverrides,
-  clearOverrides,
+  reading = new Set(),
+  toggleReader,
+  hasToggles,
+  clearToggles,
+  flash,
 }) {
   const [draft, setDraft] = useState({ buckets: config.buckets, weights: config.weights });
   const [dirty, setDirty] = useState(false);
@@ -50,7 +50,7 @@ export function BucketEditor({
   const discard = () => {
     setDraft({ buckets: config.buckets, weights: config.weights });
     setDirty(false);
-    clearOverrides?.(); // also undo this week's reader overrides (name-clicks)
+    clearToggles?.(); // also drop this week's reader toggles (name-clicks)
   };
 
   // ── structural edits (draft only) ──
@@ -65,12 +65,23 @@ export function BucketEditor({
   const finishAdd = (bi) => {
     const name = newName.trim();
     if (!cancelAddRef.current && name) {
-      const buckets = draft.buckets.map((b, i) =>
-        i === bi ? { ...b, members: [...b.members, name] } : b,
+      // Names are the identity key (weights, queue, React keys), so keep them
+      // unique across the whole roster — case-insensitively.
+      const exists = draft.buckets.some((b) =>
+        b.members.some((m) => m.toLowerCase() === name.toLowerCase()),
       );
-      const weights =
-        draft.weights[name] == null ? { ...draft.weights, [name]: DEFAULT_WEIGHT } : draft.weights;
-      apply({ buckets, weights });
+      if (exists) {
+        flash?.(`"${name}" is already on the roster — names must be unique`);
+      } else {
+        const buckets = draft.buckets.map((b, i) =>
+          i === bi ? { ...b, members: [...b.members, name] } : b,
+        );
+        const weights =
+          draft.weights[name] == null
+            ? { ...draft.weights, [name]: DEFAULT_WEIGHT }
+            : draft.weights;
+        apply({ buckets, weights });
+      }
     }
     cancelAddRef.current = false;
     setAddingTo(null);
@@ -82,7 +93,7 @@ export function BucketEditor({
         i === bi ? { ...b, members: b.members.filter((m) => m !== name) } : b,
       ),
     );
-  const addBucket = () => setBuckets([...draft.buckets, { id: newId(), members: [], ptr: 0 }]);
+  const addBucket = () => setBuckets([...draft.buckets, { id: newId(), members: [] }]);
   const removeBucket = (bi) => setBuckets(draft.buckets.filter((_, i) => i !== bi));
 
   const moveMember = (from, toBi, toIndex) => {
@@ -170,11 +181,11 @@ export function BucketEditor({
 
   return (
     <div className="card" onDragOver={onContainerDragOver} onDragLeave={onContainerDragLeave}>
-      <h2>Availability buckets &amp; weights</h2>
+      <h2>Pick — click members to select readers</h2>
 
       {draft.buckets.map((b, bi) => {
-        const reader = readersByBucket[b.id];
-        const off = !!bucketsOff[b.id];
+        // "off" is emergent: a bucket with members but nobody reading this week.
+        const off = b.members.length > 0 && !b.members.some((m) => reading.has(m));
         const isOverBucket = over?.kind === "bucket" && over.bi === bi;
         const isEndOver =
           over?.kind === "member" && over.bi === bi && over.index === b.members.length;
@@ -194,22 +205,10 @@ export function BucketEditor({
             >
               ☰
             </span>
-            <button
-              type="button"
-              className={"bucketToggle" + (off ? " isOff" : "")}
-              aria-pressed={!off}
-              onClick={() => toggleBucket?.(b.id)}
-              title={
-                off
-                  ? "Off this week — this bucket won't read or rotate forward. Click to include it."
-                  : "On this week. Click to skip — it won't read and won't advance to the next reader."
-              }
-            >
-              {off ? "Off" : "On"}
-            </button>
             <div className="chips">
               {b.members.map((m, idx) => {
-                const isReader = m === reader;
+                const isFront = m === b.members[0]; // the bucket's default reader
+                const isReading = reading.has(m); // reads this week (default or toggled)
                 const isDragging = drag?.kind === "member" && drag.bi === bi && drag.index === idx;
                 const isBefore = over?.kind === "member" && over.bi === bi && over.index === idx;
                 return (
@@ -217,7 +216,7 @@ export function BucketEditor({
                     key={m}
                     className={
                       "memberRow" +
-                      (isReader ? " reader" : "") +
+                      (isReading ? " reader" : "") +
                       (isDragging ? " dragging" : "") +
                       (isBefore ? " dropBefore" : "")
                     }
@@ -234,14 +233,26 @@ export function BucketEditor({
                       ⠿
                     </span>
                     <span
-                      className="mName"
-                      onClick={() => setReaderForBucket(b.id, m)}
-                      title={`Click to make "${m}" this week's reader`}
+                      className="readToggle"
+                      onClick={() => toggleReader?.(m)}
+                      title={
+                        isReading
+                          ? `"${m}" reads this week — click to bench`
+                          : `"${m}" does not read this week — click to select`
+                      }
                     >
-                      {m}
-                    </span>
-                    <span className="readsSlot">
-                      {isReader && <span className="tag next">reads</span>}
+                      <span className="mName">{m}</span>
+                      <span className="readsSlot">
+                        {/* always rendered so the column keeps its width — hidden
+                            (not removed) when not reading, so the slider doesn't shift */}
+                        <span
+                          className={
+                            "tag next" + (isFront ? "" : " extra") + (isReading ? "" : " ghost")
+                          }
+                        >
+                          reads
+                        </span>
+                      </span>
                     </span>
                     <input
                       type="range"
@@ -312,9 +323,11 @@ export function BucketEditor({
           + bucket
         </button>
         <span className="spacer" />
-        {dirty || hasOverrides ? (
+        {dirty || hasToggles ? (
           <>
-            <span className="warn">● {dirty ? "Unsaved changes" : "Reader override set"}</span>
+            <span className="warn">
+              ● {dirty ? "Unsaved changes" : "Readers adjusted this week"}
+            </span>
             <button className="sm" onClick={discard}>
               Discard
             </button>

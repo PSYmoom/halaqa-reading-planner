@@ -1,9 +1,18 @@
-import { useRef, useMemo, useEffect, useCallback } from "react";
+import { useRef, useMemo, useEffect, useCallback, useState } from "react";
 import { COLORS } from "../config/constants.js";
 import { ayahRange, sectionHeading } from "../utils/message.js";
 
-/** The stacked, draggable split bar. Dividers snap to section boundaries. */
-export function SplitBar({ weekSections, assignments, splits, setSplits }) {
+// Move item at `from` to slot `to` (a position in the current layout).
+function moveTo(arr, from, to) {
+  const next = arr.slice();
+  const [m] = next.splice(from, 1);
+  next.splice(to, 0, m);
+  return next;
+}
+
+/** The stacked, draggable split bar. Dividers snap to section boundaries; names
+ *  drag to swap who reads which portion (a temporary reading-order override). */
+export function SplitBar({ weekSections, assignments, splits, setSplits, setOrder }) {
   const ref = useRef(null);
   const pre = useMemo(() => {
     const p = [0];
@@ -15,6 +24,7 @@ export function SplitBar({ weekSections, assignments, splits, setSplits }) {
   const bounds = useMemo(() => [0, ...splits, weekSections.length], [splits, weekSections.length]);
   const pctAt = (sectionIdx) => (pre[sectionIdx] / total) * 100;
 
+  // ── Divider drag: resize a portion by moving a section boundary ──────────
   const onDrag = useCallback(
     (idx, clientX) => {
       const el = ref.current;
@@ -51,35 +61,108 @@ export function SplitBar({ weekSections, assignments, splits, setSplits }) {
     onDragRef.current = onDrag;
   });
 
+  // Resize stops propagating so the same press doesn't also begin a reorder.
   const startDrag = (idx) => (e) => {
     e.preventDefault();
+    e.stopPropagation();
+    setResizing(true);
     const move = (ev) => onDragRef.current(idx, ev.clientX);
     const stop = () => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", stop);
       window.removeEventListener("pointercancel", stop);
+      setResizing(false);
     };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", stop);
     window.addEventListener("pointercancel", stop);
   };
 
+  // ── Name drag: reorder who reads which portion (positions stay put) ───────
+  // Initiated from the bar itself (not the labels) so the section overlay can
+  // own hovering uninterrupted — press a reader and drag, hover to inspect.
+  const order = useMemo(() => assignments.map((a) => a.ord), [assignments]);
+  const nameByOrd = useMemo(() => {
+    const m = {};
+    assignments.forEach((a) => (m[a.ord] = a.name));
+    return m;
+  }, [assignments]);
+
+  const [reorder, setReorder] = useState(null); // { from, to } | null
+  const [resizing, setResizing] = useState(false); // a divider drag is in flight
+
+  // Which positional slot a pointer x falls in, given the current cuts.
+  const slotAt = useCallback(
+    (clientX) => {
+      const el = ref.current;
+      if (!el) return 0;
+      const rect = el.getBoundingClientRect();
+      const x = clientX - rect.left;
+      let slot = 0;
+      for (let p = 0; p < order.length; p++) {
+        if (x >= (pre[bounds[p]] / total) * rect.width) slot = p;
+      }
+      return slot;
+    },
+    [order.length, pre, bounds, total],
+  );
+
+  const startReorder = (e) => {
+    if (order.length < 2) return; // nothing to reorder with a lone reader
+    e.preventDefault();
+    const from = slotAt(e.clientX);
+    setReorder({ from, to: from });
+    const move = (ev) => {
+      const to = slotAt(ev.clientX);
+      setReorder((r) => (r && r.to === to ? r : { from, to }));
+    };
+    const stop = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", stop);
+      window.removeEventListener("pointercancel", stop);
+      setReorder((r) => {
+        if (r && r.from !== r.to) setOrder(moveTo(order, r.from, r.to));
+        return null;
+      });
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", stop);
+    window.addEventListener("pointercancel", stop);
+  };
+
+  // While dragging, preview the rearranged order; portions (and their stats)
+  // stay positional — only the name/colour filling each slot changes.
+  const view = reorder ? moveTo(order, reorder.from, reorder.to) : order;
+
   return (
-    <div className="bar" ref={ref}>
-      {assignments.map((a, i) => {
-        const left = pctAt(bounds[i]);
-        const pct = pctAt(bounds[i + 1]) - left;
+    <div
+      className={"bar" + (reorder ? " reordering" : "") + (resizing ? " resizing" : "")}
+      ref={ref}
+      onPointerDown={startReorder}
+    >
+      {view.map((ord, p) => {
+        const left = pctAt(bounds[p]);
+        const pct = pctAt(bounds[p + 1]) - left;
+        const slot = assignments[p]; // positional portion stats for this slot
+        const name = nameByOrd[ord];
+        const grabbed = reorder && reorder.to === p;
         return (
           <div
-            key={a.name}
-            className="seg"
-            style={{ left: left + "%", width: pct + "%", background: COLORS[i % COLORS.length] }}
-            title={`${a.name}: ${a.words} words, ${a.sections.length} sections`}
+            key={ord}
+            className={"seg" + (grabbed ? " grabbed" : "")}
+            style={{ left: left + "%", width: pct + "%", background: COLORS[ord % COLORS.length] }}
           >
-            {pct > 8 && (
+            {pct > 8 ? (
               <span className="segLabel">
-                <b>{a.name}</b>
-                {pct > 15 && <em>{a.words}w</em>}
+                <span className="segDots" aria-hidden="true">
+                  ⠿
+                </span>
+                <b>{name}</b>
+                {pct > 15 && <em>{slot.words}w</em>}
+              </span>
+            ) : (
+              <span className="segGrip" aria-hidden="true">
+                ⠿
               </span>
             )}
           </div>

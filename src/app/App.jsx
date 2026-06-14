@@ -61,7 +61,7 @@ export default function App() {
         loading={loading}
         error={error}
         members={readers.members}
-        overrideActive={readers.overrideActive}
+        togglesActive={readers.togglesActive}
         offCount={readers.offCount}
         week={week}
       />
@@ -70,12 +70,11 @@ export default function App() {
         <BucketEditor
           config={config}
           setConfig={setConfig}
-          readersByBucket={readers.readersByBucket}
-          setReaderForBucket={readers.setReaderForBucket}
-          bucketsOff={readers.bucketsOff}
-          toggleBucket={readers.toggleBucket}
-          hasOverrides={readers.overrideActive}
-          clearOverrides={readers.clearOverrides}
+          reading={readers.reading}
+          toggleReader={readers.toggleReader}
+          hasToggles={readers.togglesActive}
+          clearToggles={readers.clearReaderToggles}
+          flash={flash}
         />
         <SplitPanel week={week} wpm={config.readingWpm} />
       </div>

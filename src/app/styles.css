@@ -283,31 +283,68 @@ button.sm { padding: 3px 9px; font-size: 12px; }
   background: linear-gradient(180deg, #4fc4a6, var(--accent)); color: #04140f;
   box-shadow: 0 0 0 1px rgb(var(--accent-rgb) / .4), 0 0 14px rgb(var(--accent-rgb) / .3);
 }
+/* an extra reader added just for this week — gold, to read as temporary vs the
+   jade front-of-queue reader */
+.tag.next.extra {
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold)); color: #2a2008;
+  box-shadow: 0 0 0 1px rgb(var(--gold-rgb) / .45), 0 0 14px rgb(var(--gold-rgb) / .3);
+}
 
 /* ── Split bar ──────────────────────────────────────────────── */
 .bar {
   height: 46px; border-radius: 9px; overflow: hidden;
   border: 1px solid var(--line-gold); position: relative; user-select: none;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 4px 14px -8px #000;
+  cursor: grab; touch-action: none;
 }
+.bar.reordering { cursor: grabbing; }
 .seg {
   position: absolute; top: 0; bottom: 0; display: flex; align-items: center; justify-content: center;
   overflow: hidden; color: #0c1410; white-space: nowrap;
   background-image: linear-gradient(180deg, rgba(255, 255, 255, .22), rgba(0, 0, 0, .12));
   background-blend-mode: overlay;
-  transition: filter .14s;
+  /* portions glide to new spots on any layout change — reordering AND undo
+     (Auto-balance) both ride this; only live divider-resize opts out below. */
+  transition: left .2s cubic-bezier(.2, .8, .2, 1), width .2s cubic-bezier(.2, .8, .2, 1),
+    filter .16s, box-shadow .16s;
 }
+/* The name chip is paint-only: it sits above the section markers so the reader
+   is legible, but passes the pointer through (pointer-events: none) so the
+   overlay underneath owns hovering — you inspect sections and reorder readers
+   without the two ever fighting. The whole bar is the drag surface. */
 .segLabel {
-  display: inline-flex; align-items: baseline; gap: 6px; padding: 6px 8px 0; min-width: 0;
+  position: relative; z-index: 3; pointer-events: none;
+  display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; min-width: 0;
   font-size: 12px; letter-spacing: .01em; text-shadow: 0 1px 0 rgba(255, 255, 255, .18);
 }
 .segLabel b { font-weight: 700; }
 .segLabel em { font-style: normal; font-weight: 600; font-size: 11px; opacity: .68; font-variant-numeric: tabular-nums; }
-.seg:hover { filter: brightness(1.12) saturate(1.05); }
+/* grip dots — a "this lifts" cue on each reader. Drawn in CSS rather than with
+   the braille glyph ⠿, which fonts render as thin grey dots no matter the ink:
+   solid #0c1410 circles paint as black as the words, with no shadow to wash. */
+/* the braille ⠿ (a 2×3 dot cell) as a drag-grip cue, in the same dark ink as
+   the reader name. Its own class — NOT .grip, which is the member-row handle
+   whose grey colour/padding it would otherwise inherit. */
+.segDots, .segGrip {
+  color: #0c1410; font-size: 14px; line-height: 1; text-shadow: none;
+}
+/* narrow portions: too thin for the full chip, so just the grip dots */
+.segGrip { position: relative; z-index: 3; pointer-events: none; }
+/* Live divider-resize is the one case that must track the pointer 1:1, so it
+   opts out of the glide; everything else (reorder, undo) keeps it. */
+.bar.resizing .seg, .bar.resizing .handle { transition: none; }
+/* ── While reordering: the held portion lifts, the rest recede ───────────── */
+.bar.reordering .seg:not(.grabbed) { filter: brightness(.78) saturate(.9); }
+.seg.grabbed {
+  z-index: 6; filter: brightness(1.14) saturate(1.08);
+  box-shadow: 0 10px 22px -8px rgba(0, 0, 0, .6), 0 0 0 2px rgb(var(--gold-bright-rgb) / .9),
+    inset 0 0 0 1px rgba(255, 255, 255, .3);
+}
 /* wide, forgiving grab target centred on the boundary; the gold line stays slim */
 .handle {
   position: absolute; top: 0; bottom: 0; width: 20px; transform: translateX(-50%);
-  cursor: ew-resize; z-index: 3; touch-action: none;
+  cursor: ew-resize; z-index: 5; touch-action: none;
+  transition: left .2s cubic-bezier(.2, .8, .2, 1);
 }
 .handle::after {
   content: ""; position: absolute; top: 6px; bottom: 6px; left: 9px; width: 2px;
@@ -315,8 +352,12 @@ button.sm { padding: 3px 9px; font-size: 12px; }
   transition: box-shadow .12s, top .12s, bottom .12s;
 }
 .handle:hover::after, .handle:active::after { top: 3px; bottom: 3px; box-shadow: 0 0 12px rgb(var(--gold-bright-rgb) / .95); }
-.secOverlay { position: absolute; inset: 0; z-index: 2; }
-.secCell { position: absolute; top: 0; bottom: 0; transition: background-color .12s; }
+/* The single hover/inspect layer: the container itself is click-through, the
+   cells take the pointer so each section shows its tooltip + highlight. Muted
+   mid-drag so reordering never trips the section highlight. */
+.secOverlay { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+.secCell { position: absolute; top: 0; bottom: 0; pointer-events: auto; transition: background-color .12s; }
+.bar.reordering .secCell { pointer-events: none; }
 .secCell::before {
   content: ""; position: absolute; top: 0; left: 0; transform: translateX(-50%);
 }
@@ -414,15 +455,6 @@ button.sm { padding: 3px 9px; font-size: 12px; }
 .bucketRow:first-of-type { border-top: none; }
 .bucketRow.overBucket { background: rgb(var(--gold-rgb) / .08); box-shadow: inset 0 0 0 1px var(--line-gold); }
 .bucketRow.off .chips, .bucketRow.off .bhandle { opacity: .42; }
-.bucketToggle {
-  flex: none; padding: 2px 11px; font-size: 10.5px; font-weight: 700;
-  letter-spacing: .08em; text-transform: uppercase; border-radius: 999px;
-  border: 1px solid var(--accent); color: var(--accent);
-  background: rgb(var(--accent-rgb) / .1);
-}
-.bucketToggle:hover { border-color: var(--accent); filter: brightness(1.12); }
-.bucketToggle.isOff { border-color: var(--line); color: var(--faint); background: transparent; }
-.bucketToggle.isOff:hover { border-color: var(--gold-deep); color: var(--muted); filter: none; }
 .bhandle { cursor: grab; color: var(--muted); font-size: 15px; line-height: 1; padding: 2px 3px; user-select: none; }
 .bhandle:active { cursor: grabbing; }
 
@@ -439,7 +471,15 @@ button.sm { padding: 3px 9px; font-size: 12px; }
 .memberRow.dragging { opacity: .35; }
 .memberRow.dropBefore { box-shadow: 0 -3px 0 0 var(--gold-bright); }
 .memberRow input[type=range] { width: 100%; accent-color: var(--accent); }
+/* name + "reads" pill form one click target (toggles the reader), so the gap
+   between them is live too. Spans both columns via subgrid to keep alignment. */
+.readToggle {
+  grid-column: span 2; display: grid; grid-template-columns: subgrid;
+  align-items: center; cursor: pointer;
+}
 .readsSlot { display: inline-flex; justify-self: start; }
+/* placeholder reads pill — reserves the column so the slider stays put when off */
+.tag.ghost { visibility: hidden; }
 .grip { cursor: grab; color: var(--faint); font-size: 14px; line-height: 1; padding: 0 2px 0 10px; user-select: none; justify-self: start; }
 .grip:active { cursor: grabbing; }
 .mName { cursor: pointer; padding: 0 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
@@ -456,6 +496,9 @@ button.sm { padding: 3px 9px; font-size: 12px; }
 .trashIcon { width: 14px; height: 14px; display: block; }
 
 .saveBar { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 11px; border-top: 1px solid var(--line); }
+/* buttons keep their size; the status text is the one that flexes/wraps when tight */
+.saveBar button { flex: none; white-space: nowrap; }
+.saveBar .warn, .saveBar .muted { min-width: 0; }
 
 /* ── Searchable combobox ────────────────────────────────────── */
 .combo { position: relative; }

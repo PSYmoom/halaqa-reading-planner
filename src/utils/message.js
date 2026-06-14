@@ -40,12 +40,12 @@ export function ayahRange(a) {
  */
 export const sectionHeading = (s) => (/^Ayat \d/.test(s.title || "") ? "Translation" : s.title);
 
-/** The full WhatsApp message: intro, one line + link per reader, outro. */
+/** The full WhatsApp message: intro, one line per reader (description | link), outro. */
 export function generateMessage(surah, assignments, templates) {
   const intro = templates.intro.replace(/\{surah\}/g, `Surah ${surahName(surah)}`);
   const active = assignments.filter((a) => a.sections.length);
   const lines = active.map(
-    (a, i) => `- ${a.name}: ${describe(a, active[i - 1])}\n  ${tafsirLink(surah, a.ayahStart)}`,
+    (a, i) => `- ${a.name}: ${describe(a, active[i - 1])} | ${tafsirLink(surah, a.ayahStart)}`,
   );
   return [intro, "", ...lines, "", templates.outro].join("\n");
 }
