@@ -96,8 +96,11 @@ export default function App() {
       <SettingsPanel config={config} setConfig={setConfig} flash={flash} />
 
       {toast && (
-        <div className="toast">
-          <span>{toast.message}</span>
+        <div className="toast" role="status" aria-live="polite">
+          <span className="toastStar" aria-hidden="true">
+            ۞
+          </span>
+          <span className="toastMsg">{toast.message}</span>
           {toast.action && (
             <button
               className="toastAction"

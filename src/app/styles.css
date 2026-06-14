@@ -546,21 +546,51 @@ button.sm { padding: 3px 9px; font-size: 12px; }
 .saveBar .warn, .saveBar .muted { font-size: 12px; }
 
 /* ── Misc ───────────────────────────────────────────────────── */
+/* A gold-leaf plaque, not a flat pill: inset top highlight + soft bottom
+   shade give the gold dimension, layered shadows lift it off the lapis, and
+   a single sheen sweeps across on entry like leaf catching the light. */
 .toast {
-  position: fixed; bottom: 22px; left: 0; right: 0; margin: 0 auto; width: fit-content; z-index: 50;
-  display: inline-flex; align-items: center; gap: 14px;
-  background: linear-gradient(180deg, var(--gold-bright), var(--gold)); color: #2a2008;
-  padding: 9px 12px 9px 20px; border-radius: 999px; font-weight: 600;
-  box-shadow: 0 10px 30px -8px rgb(var(--gold-rgb) / .5); animation: rise .3s ease both;
+  position: fixed; bottom: 26px; left: 0; right: 0; margin: 0 auto;
+  width: fit-content; max-width: min(92vw, 460px); z-index: 50;
+  display: inline-flex; align-items: center; gap: 12px;
+  padding: 11px 15px 11px 16px; border-radius: 14px;
+  color: #2a2008; font-weight: 600; line-height: 1.4;
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold) 60%, var(--gold-deep));
+  border: 1px solid rgb(var(--gold-bright-rgb) / .85);
+  box-shadow:
+    0 1px 0 rgb(255 255 255 / .4) inset,        /* leaf top highlight */
+    0 -1px 0 rgb(0 0 0 / .14) inset,            /* base shade */
+    0 18px 40px -14px rgb(var(--gold-rgb) / .55),
+    0 6px 18px -10px rgb(0 0 0 / .55);
+  overflow: hidden;
+  animation: toastIn .42s cubic-bezier(.2, .9, .25, 1.35) both;
 }
-/* the action (e.g. Undo) reads as a button on the gold toast */
+/* the glint of gold catching light — one pass, then gone */
+.toast::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(105deg, transparent 32%, rgb(255 255 255 / .5) 48%, transparent 64%);
+  transform: translateX(-130%);
+  animation: toastSheen 1.1s ease .3s both;
+}
+/* Rub-el-Hizb star — the theme's motif, illuminating the message */
+.toastStar {
+  flex: none; font-size: 17px; line-height: 1; color: rgb(42 32 8 / .72);
+  text-shadow: 0 1px 0 rgb(255 255 255 / .35);
+  animation: toastStar 6s ease-in-out infinite;
+}
+.toastMsg { position: relative; }
+/* the action (e.g. Undo) reads as an engraved button on the gold plaque */
 .toastAction {
-  background: rgba(0, 0, 0, .14); color: #2a2008;
-  border: 1px solid rgba(0, 0, 0, .32); border-radius: 999px;
-  padding: 3px 13px; font-size: 12px; font-weight: 700;
-  text-transform: uppercase; letter-spacing: .05em;
+  position: relative; flex: none;
+  background: rgb(0 0 0 / .14); color: #2a2008;
+  border: 1px solid rgb(0 0 0 / .3); border-radius: 9px;
+  box-shadow: 0 1px 0 rgb(255 255 255 / .25) inset;
+  padding: 4px 13px; font-size: 12px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .06em;
+  transition: background .15s ease, border-color .15s ease, transform .1s ease;
 }
-.toastAction:hover { background: rgba(0, 0, 0, .24); border-color: rgba(0, 0, 0, .5); }
+.toastAction:hover { background: rgb(0 0 0 / .24); border-color: rgb(0 0 0 / .48); }
+.toastAction:active { transform: translateY(1px); }
 .err { background: rgb(var(--danger-rgb) / .12); border: 1px solid var(--danger); color: #f2c2b8; padding: 10px 12px; border-radius: 8px; }
 details summary { cursor: pointer; list-style: none; }
 details summary::-webkit-details-marker { display: none; }
@@ -571,6 +601,9 @@ details summary h2 { margin: 0; }
 
 /* ── Motion ─────────────────────────────────────────────────── */
 @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes toastIn { from { opacity: 0; transform: translateY(16px) scale(.96); } to { opacity: 1; transform: none; } }
+@keyframes toastSheen { to { transform: translateX(130%); } }
+@keyframes toastStar { 0%, 100% { transform: rotate(0); opacity: .72; } 50% { transform: rotate(22.5deg); opacity: 1; } }
 @keyframes glow { 0%, 100% { text-shadow: 0 0 14px rgb(var(--gold-rgb) / .25); } 50% { text-shadow: 0 0 26px rgb(var(--gold-rgb) / .55); } }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
