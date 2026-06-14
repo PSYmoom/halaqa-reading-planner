@@ -9,10 +9,11 @@ import {
   computeSplits,
   buildAssignments,
   nextStart,
-} from "../src/utils/engine.js";
+} from "../src/utils/engine.ts";
+import type { Section } from "../src/types.ts";
 
 // Fixture: n sections, one ayah each (ayah i+1), with the given word counts.
-const secs = (words) =>
+const secs = (words: number[]): Section[] =>
   words.map((w, i) => ({ title: `s${i}`, words: w, ayahStart: i + 1, ayahEnd: i + 1 }));
 
 describe("isHeading", () => {
@@ -99,21 +100,21 @@ describe("buildSections", () => {
 
 describe("pickWeek", () => {
   test("stops once the word budget is met", () => {
-    assert.equal(pickWeek(secs([100, 100, 100]), 1, 150, 1).length, 2);
+    assert.equal(pickWeek(secs([100, 100, 100]), 1, 150).length, 2);
   });
-  test("includes at least minSections even under a tiny budget", () => {
-    assert.equal(pickWeek(secs([100, 100, 100]), 1, 50, 3).length, 3);
+  test("budget is a hard cap — never pads past it to seat more readers", () => {
+    assert.equal(pickWeek(secs([100, 100, 100]), 1, 50).length, 1);
   });
-  test("returns everything when minSections exceeds what's available", () => {
-    assert.equal(pickWeek(secs([100, 100, 100]), 1, 50, 5).length, 3);
+  test("always returns at least one section, even if it exceeds the budget", () => {
+    assert.equal(pickWeek(secs([500]), 1, 50).length, 1);
   });
   test("starts at the section containing startAyah", () => {
-    const week = pickWeek(secs([100, 100, 100]), 2, 1000, 1);
+    const week = pickWeek(secs([100, 100, 100]), 2, 1000);
     assert.equal(week[0].ayahStart, 2);
     assert.equal(week.length, 2);
   });
   test("falls back to the first section when startAyah is past the end", () => {
-    const week = pickWeek(secs([100, 100]), 99, 100, 1);
+    const week = pickWeek(secs([100, 100]), 99, 100);
     assert.equal(week[0].ayahStart, 1);
   });
 });

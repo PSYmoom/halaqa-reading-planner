@@ -1,47 +1,67 @@
 import { useState, useEffect, useRef } from "react";
-import { DEFAULT_WEIGHT } from "../config/constants.js";
+import { DEFAULT_WEIGHT } from "../config/constants.ts";
+import type { Bucket, Config, ToastAction } from "../types.ts";
 
 let _seq = 0;
-const newId = () => `b${Date.now().toString(36)}${(_seq++).toString(36)}`;
-const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+const newId = (): string => `b${Date.now().toString(36)}${(_seq++).toString(36)}`;
+const eq = (a: unknown, b: unknown): boolean => JSON.stringify(a) === JSON.stringify(b);
+
+interface Draft {
+  buckets: Bucket[];
+  weights: Record<string, number>;
+}
+
+/** What the user is currently dragging. */
+type DragPayload =
+  | { kind: "member"; bi: number; index: number }
+  | { kind: "bucket"; index: number };
+
+/** Where the drop would land (the highlighted gap or bucket). */
+type OverTarget = { kind: "member"; bi: number; index: number } | { kind: "bucket"; bi: number };
+
+interface BucketEditorProps {
+  config: Config;
+  setConfig: (next: Config) => void;
+  reading?: Set<string>;
+  toggleReader?: (name: string) => void;
+  hasToggles: boolean;
+  clearToggles?: () => void;
+  flash?: (message: string, action?: ToastAction | null) => void;
+}
 
 /**
- * Availability-tier buckets with drag-and-drop. Edits are staged in a local
- * draft and only committed when "Save changes" is pressed.
- * - drag a member's grip (⠿) to reorder within a bucket or move between buckets
- * - drag a bucket's hamburger (☰) to reorder buckets
- * - click any member's name to toggle whether they read this week (live); a
- *   bucket with nobody reading is "off"
+ * Availability-tier buckets with drag-and-drop, staged in a local draft and
+ * committed on "Save changes". Drag a grip (⠿) to move members, the hamburger
+ * (☰) to reorder buckets, or click a name to toggle who reads this week.
  */
 export function BucketEditor({
   config,
   setConfig,
-  reading = new Set(),
+  reading = new Set<string>(),
   toggleReader,
   hasToggles,
   clearToggles,
   flash,
-}) {
-  const [draft, setDraft] = useState({ buckets: config.buckets, weights: config.weights });
+}: BucketEditorProps) {
+  const [draft, setDraft] = useState<Draft>({ buckets: config.buckets, weights: config.weights });
   const [dirty, setDirty] = useState(false);
-  const [drag, setDrag] = useState(null); // { kind:'member', bi, index } | { kind:'bucket', index }
-  const [over, setOver] = useState(null); // { kind:'member', bi, index } | { kind:'bucket', bi }
-  const dragRef = useRef(null); // mirror of `drag` readable inside native handlers
-  const [addingTo, setAddingTo] = useState(null); // bucket index showing the inline add-member input
+  const [drag, setDrag] = useState<DragPayload | null>(null);
+  const [over, setOver] = useState<OverTarget | null>(null);
+  const dragRef = useRef<DragPayload | null>(null); // mirror of `drag`, readable in native handlers
+  const [addingTo, setAddingTo] = useState<number | null>(null); // bucket index with the add-member input
   const [newName, setNewName] = useState("");
-  const cancelAddRef = useRef(false); // set when Escape should discard instead of commit
+  const cancelAddRef = useRef(false); // set when Escape should discard the add
 
-  // Resync the draft when the saved config changes externally (e.g. Mark as sent),
-  // but never clobber unsaved edits.
+  // Resync the draft when the saved config changes externally, but never clobber unsaved edits.
   useEffect(() => {
     if (!dirty) setDraft({ buckets: config.buckets, weights: config.weights });
   }, [config.buckets, config.weights, dirty]);
 
-  const apply = (next) => {
+  const apply = (next: Draft) => {
     setDraft(next);
     setDirty(true);
   };
-  const setBuckets = (buckets) => apply({ ...draft, buckets });
+  const setBuckets = (buckets: Bucket[]) => apply({ ...draft, buckets });
 
   const save = () => {
     setConfig({ ...config, buckets: draft.buckets, weights: draft.weights });
@@ -50,23 +70,22 @@ export function BucketEditor({
   const discard = () => {
     setDraft({ buckets: config.buckets, weights: config.weights });
     setDirty(false);
-    clearToggles?.(); // also drop this week's reader toggles (name-clicks)
+    clearToggles?.(); // also drop this week's reader toggles
   };
 
-  // ── structural edits (draft only) ──
-  const setWeight = (name, w) => apply({ ...draft, weights: { ...draft.weights, [name]: w } });
-  // Inline add-member: a themed input replaces the "+ member" button. Enter/blur commits,
-  // Escape discards (both routed through onBlur so it only commits once).
-  const startAdd = (bi) => {
+  // Structural edits (draft only).
+  const setWeight = (name: string, w: number) =>
+    apply({ ...draft, weights: { ...draft.weights, [name]: w } });
+  const startAdd = (bi: number) => {
     setAddingTo(bi);
     setNewName("");
     cancelAddRef.current = false;
   };
-  const finishAdd = (bi) => {
+  // Enter/blur commits, Escape discards — both routed through onBlur so it commits once.
+  const finishAdd = (bi: number) => {
     const name = newName.trim();
     if (!cancelAddRef.current && name) {
-      // Names are the identity key (weights, queue, React keys), so keep them
-      // unique across the whole roster — case-insensitively.
+      // Names are the identity key, so keep them unique across the roster (case-insensitively).
       const exists = draft.buckets.some((b) =>
         b.members.some((m) => m.toLowerCase() === name.toLowerCase()),
       );
@@ -87,16 +106,16 @@ export function BucketEditor({
     setAddingTo(null);
     setNewName("");
   };
-  const removeMember = (bi, name) =>
+  const removeMember = (bi: number, name: string) =>
     setBuckets(
       draft.buckets.map((b, i) =>
         i === bi ? { ...b, members: b.members.filter((m) => m !== name) } : b,
       ),
     );
   const addBucket = () => setBuckets([...draft.buckets, { id: newId(), members: [] }]);
-  const removeBucket = (bi) => setBuckets(draft.buckets.filter((_, i) => i !== bi));
+  const removeBucket = (bi: number) => setBuckets(draft.buckets.filter((_, i) => i !== bi));
 
-  const moveMember = (from, toBi, toIndex) => {
+  const moveMember = (from: { bi: number; index: number }, toBi: number, toIndex: number) => {
     const buckets = draft.buckets.map((b) => ({ ...b, members: [...b.members] }));
     const [m] = buckets[from.bi].members.splice(from.index, 1);
     let ti = toIndex;
@@ -106,7 +125,7 @@ export function BucketEditor({
       draft.weights[m] == null ? { ...draft.weights, [m]: DEFAULT_WEIGHT } : draft.weights;
     apply({ buckets, weights });
   };
-  const moveBucket = (fromIdx, toIdx) => {
+  const moveBucket = (fromIdx: number, toIdx: number) => {
     if (fromIdx === toIdx) return;
     const buckets = draft.buckets.slice();
     const [b] = buckets.splice(fromIdx, 1);
@@ -114,8 +133,8 @@ export function BucketEditor({
     setBuckets(buckets);
   };
 
-  // ── native drag-and-drop plumbing ──
-  const startDrag = (payload) => (e) => {
+  // Native drag-and-drop plumbing.
+  const startDrag = (payload: DragPayload) => (e: React.DragEvent<HTMLSpanElement>) => {
     dragRef.current = payload;
     setDrag(payload);
     e.dataTransfer.effectAllowed = "move";
@@ -128,40 +147,41 @@ export function BucketEditor({
     setDrag(null);
     setOver(null);
   };
-  const setOverIf = (o) => setOver((prev) => (eq(prev, o) ? prev : o));
+  const setOverIf = (o: OverTarget | null) => setOver((prev) => (eq(prev, o) ? prev : o));
 
-  // Drop position is the gap nearest the cursor: left half of a chip → before it,
-  // right half → after it. This makes dropping *behind* a member as easy as in front.
-  const gapAt = (e, idx) => {
+  // Drop into the gap nearest the cursor: left half of a chip → before it, right half → after.
+  const gapAt = (e: React.DragEvent, idx: number) => {
     const r = e.currentTarget.getBoundingClientRect();
     return e.clientX > r.left + r.width / 2 ? idx + 1 : idx;
   };
-  const onChipOver = (bi, idx) => (e) => {
+  const onChipOver = (bi: number, idx: number) => (e: React.DragEvent<HTMLDivElement>) => {
     if (dragRef.current?.kind !== "member") return;
     e.preventDefault();
     e.stopPropagation();
     setOverIf({ kind: "member", bi, index: gapAt(e, idx) });
   };
-  const onChipDrop = (bi, idx) => (e) => {
-    if (dragRef.current?.kind !== "member") return;
+  const onChipDrop = (bi: number, idx: number) => (e: React.DragEvent<HTMLDivElement>) => {
+    const d = dragRef.current;
+    if (d?.kind !== "member") return;
     e.preventDefault();
     e.stopPropagation();
-    moveMember(dragRef.current, bi, gapAt(e, idx));
+    moveMember(d, bi, gapAt(e, idx));
     endDrag();
   };
-  const onBucketEndOver = (bi, len) => (e) => {
+  const onBucketEndOver = (bi: number, len: number) => (e: React.DragEvent<HTMLDivElement>) => {
     if (dragRef.current?.kind !== "member") return;
     e.preventDefault();
     e.stopPropagation();
     setOverIf({ kind: "member", bi, index: len });
   };
-  const onBucketEndDrop = (bi, len) => (e) => {
-    if (dragRef.current?.kind !== "member") return;
+  const onBucketEndDrop = (bi: number, len: number) => (e: React.DragEvent<HTMLDivElement>) => {
+    const d = dragRef.current;
+    if (d?.kind !== "member") return;
     e.preventDefault();
-    moveMember(dragRef.current, bi, len);
+    moveMember(d, bi, len);
     endDrag();
   };
-  const onBucketRowOver = (bi) => (e) => {
+  const onBucketRowOver = (bi: number) => (e: React.DragEvent<HTMLDivElement>) => {
     if (dragRef.current?.kind !== "bucket") return;
     e.preventDefault();
     e.stopPropagation();
@@ -169,13 +189,14 @@ export function BucketEditor({
   };
 
   const onContainerDragOver = () => setOverIf(null);
-  const onContainerDragLeave = (e) => {
-    if (!e.currentTarget.contains(e.relatedTarget)) setOverIf(null);
+  const onContainerDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) setOverIf(null);
   };
-  const onBucketRowDrop = (bi) => (e) => {
-    if (dragRef.current?.kind !== "bucket") return;
+  const onBucketRowDrop = (bi: number) => (e: React.DragEvent<HTMLDivElement>) => {
+    const d = dragRef.current;
+    if (d?.kind !== "bucket") return;
     e.preventDefault();
-    moveBucket(dragRef.current.index, bi);
+    moveBucket(d.index, bi);
     endDrag();
   };
 
@@ -184,7 +205,7 @@ export function BucketEditor({
       <h2>Pick — click members to select readers</h2>
 
       {draft.buckets.map((b, bi) => {
-        // "off" is emergent: a bucket with members but nobody reading this week.
+        // "off": a bucket with members but nobody reading this week.
         const off = b.members.length > 0 && !b.members.some((m) => reading.has(m));
         const isOverBucket = over?.kind === "bucket" && over.bi === bi;
         const isEndOver =
@@ -208,7 +229,7 @@ export function BucketEditor({
             <div className="chips">
               {b.members.map((m, idx) => {
                 const isFront = m === b.members[0]; // the bucket's default reader
-                const isReading = reading.has(m); // reads this week (default or toggled)
+                const isReading = reading.has(m);
                 const isDragging = drag?.kind === "member" && drag.bi === bi && drag.index === idx;
                 const isBefore = over?.kind === "member" && over.bi === bi && over.index === idx;
                 return (
@@ -243,8 +264,7 @@ export function BucketEditor({
                     >
                       <span className="mName">{m}</span>
                       <span className="readsSlot">
-                        {/* always rendered so the column keeps its width — hidden
-                            (not removed) when not reading, so the slider doesn't shift */}
+                        {/* always rendered (hidden, not removed) so the column keeps its width */}
                         <span
                           className={
                             "tag next" + (isFront ? "" : " extra") + (isReading ? "" : " ghost")

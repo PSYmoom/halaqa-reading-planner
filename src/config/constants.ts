@@ -1,16 +1,16 @@
-// Static configuration: data source, surah names, palette, defaults.
+import type { Config } from "../types.ts";
 
 export const EDITION = "en-tafisr-ibn-kathir";
 
-// Version of the cached sections (part of the localStorage cache key). Bump whenever buildSections' output shape OR content changes
+// Part of the cache key — bump when buildSections' output shape or content changes.
 export const CACHE_VERSION = 1;
 
-export const CDNS = [
+export const CDNS: ((s: number) => string)[] = [
   (s) => `https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/${EDITION}/${s}.json`,
   (s) => `https://raw.githubusercontent.com/spa5k/tafsir_api/main/tafsir/${EDITION}/${s}.json`,
 ];
 
-export const tafsirLink = (surah, ayah) =>
+export const tafsirLink = (surah: number, ayah: number | null) =>
   `https://www.alim.org/quran/tafsir/ibn-kathir/surah/${surah}/${ayah}/`;
 
 export const SURAH_NAMES = [
@@ -130,9 +130,9 @@ export const SURAH_NAMES = [
   "An-Nas",
 ];
 
-export const surahName = (n) => SURAH_NAMES[n - 1] || `Surah ${n}`;
+export const surahName = (n: number) => SURAH_NAMES[n - 1] || `Surah ${n}`;
 
-// Muted "illuminated manuscript" jewel tones — gold leads, then jade, lapis, etc.
+// Muted "illuminated manuscript" jewel tones.
 export const COLORS = [
   "#c9a24b",
   "#3fae93",
@@ -148,35 +148,28 @@ export const COLORS = [
 
 export const READING_WPM = 60;
 
-// Range of the weekly word-budget slider
 export const WORD_BUDGET = { MIN: 500, MAX: 14000 };
 
-// How long a toast notification stays on screen.
 export const TOAST_MS = 1600;
-// Longer for a toast that carries an action (e.g. "Undo"), so there's time to use it.
-export const TOAST_ACTION_MS = 8000;
+export const TOAST_ACTION_MS = 8000; // longer, so there's time to use a toast's action
 
-// Weight given to a member who hasn't had their slider touched yet.
 export const DEFAULT_WEIGHT = 5;
 
-// Small words ignored when deciding if a line is a Title-Case section heading.
+// Words ignored when testing whether a line is a Title-Case heading.
 export const SMALL = new Set(
   "of the that for which during with from as not but or a an in on to and is was were are be by his their them they he she it this these those who whom at into upon".split(
     " ",
   ),
 );
 
-export const DEFAULT_CONFIG = {
-  // Buckets are availability tiers (how much free time each member has this season).
-  // EACH WEEK one reader is taken from EVERY bucket — the front of its queue
-  // (members[0]) — so #readers/week === #buckets. On "Mark as sent" the reader
-  // moves to the back of the bucket, so the order is the rotation queue.
+export const DEFAULT_CONFIG: Config = {
+  // Availability tiers. Each week the front of every bucket reads, then rotates
+  // to the back on "Mark as sent" — so #readers/week === #buckets.
   buckets: [
     { id: "b1", members: ["Ahmad"] },
     { id: "b2", members: ["Bilal", "Yusuf"] },
     { id: "b3", members: ["Khalid", "Hamza", "Idris", "Anas"] },
   ],
-  // Example starting weights — adjust the sliders any time; these are just a sensible default.
   weights: { Ahmad: 10, Bilal: 7, Yusuf: 6, Khalid: 6, Hamza: 3, Idris: 1, Anas: 2 },
   surah: 3,
   startAyah: 130,

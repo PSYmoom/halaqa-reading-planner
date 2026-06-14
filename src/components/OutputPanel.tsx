@@ -1,12 +1,24 @@
 import { useState } from "react";
-import { surahName } from "../config/constants.js";
-import { readingTime } from "../utils/message.js";
+import { surahName } from "../config/constants.ts";
+import { readingTime } from "../utils/message.ts";
+import type { Templates, ToastAction, WeekPlan } from "../types.ts";
+
+interface OutputPanelProps {
+  message: string;
+  surah: number;
+  memberCount: number;
+  week: WeekPlan;
+  wpm: number;
+  templates: Templates;
+  setTemplates: (templates: Templates) => void;
+  nextLabel: string;
+  onMarkSent: () => void;
+  flash: (message: string, action?: ToastAction | null) => void;
+}
 
 /**
- * Full-width output — the actual product of the tool: the WhatsApp message
- * preview, the copy button, and "Mark as sent". The intro/outro templates are
- * edited in place here (toggle "Edit text"), so the preview is the editor: the
- * read-only message and the fields that shape it share the same frame.
+ * The tool's output: WhatsApp message preview, copy button, and "Mark as sent".
+ * Intro/outro templates are edited in place via the "Edit text" toggle.
  */
 export function OutputPanel({
   message,
@@ -19,7 +31,7 @@ export function OutputPanel({
   nextLabel,
   onMarkSent,
   flash,
-}) {
+}: OutputPanelProps) {
   const [editing, setEditing] = useState(false);
 
   const copyMessage = async () => {
@@ -31,8 +43,8 @@ export function OutputPanel({
     }
   };
 
-  const setIntro = (intro) => setTemplates({ ...templates, intro });
-  const setOutro = (outro) => setTemplates({ ...templates, outro });
+  const setIntro = (intro: string) => setTemplates({ ...templates, intro });
+  const setOutro = (outro: string) => setTemplates({ ...templates, outro });
 
   const readerLabel = `${memberCount} reader${memberCount === 1 ? "" : "s"}`;
   const coverage =
@@ -46,10 +58,12 @@ export function OutputPanel({
         <div className="outputMain">
           <div className="outputHead">
             <h2>WhatsApp message</h2>
-            <span className="outputMeta">
-              {editing ? "Editing" : "Preview"} · {readerLabel}
-              {coverage} · Surah {surahName(surah)}
-            </span>
+            {week.weekStart != null && (
+              <span className="outputMeta">
+                {editing ? "Editing" : "Preview"} · {readerLabel}
+                {coverage} · Surah {surahName(surah)}
+              </span>
+            )}
             <button
               type="button"
               className={"editToggle" + (editing ? " active" : "")}

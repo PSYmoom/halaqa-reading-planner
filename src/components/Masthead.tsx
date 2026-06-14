@@ -1,7 +1,11 @@
-import { surahName } from "../config/constants.js";
+import { surahName } from "../config/constants.ts";
 
-/** Page header — brand, ornament, and the one-line description of the tool. */
-export function Masthead({ surah }) {
+interface MastheadProps {
+  surah: number;
+}
+
+/** Page header — brand, ornament, and the one-line tool description. */
+export function Masthead({ surah }: MastheadProps) {
   return (
     <>
       <header className="masthead">

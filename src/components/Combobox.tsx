@@ -1,10 +1,20 @@
 import { useState, useRef, useMemo, useEffect } from "react";
-import { filterOptions } from "../utils/filter.js";
+import { filterOptions } from "../utils/filter.ts";
+import type { ComboOption } from "../types.ts";
+
+interface ComboboxProps {
+  options: ComboOption[];
+  value: number | string | null | undefined;
+  display: string;
+  placeholder: string;
+  onSelect: (value: number | string) => void;
+  allowNumber?: boolean;
+  onNumber?: (n: number) => void;
+}
 
 /**
- * Searchable, scrollable, keyboard-navigable select.
- * `options`: [{ value, label, hint?, key? }] — filtered on label, value and hint.
- * `allowNumber` + `onNumber` let the user commit a typed number with no matching option.
+ * Searchable, keyboard-navigable select over `options` (filtered on label,
+ * value, hint). `allowNumber`/`onNumber` commit a typed number with no match.
  */
 export function Combobox({
   options,
@@ -14,20 +24,18 @@ export function Combobox({
   onSelect,
   allowNumber,
   onNumber,
-}) {
+}: ComboboxProps) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
   const [hi, setHi] = useState(0);
-  const ref = useRef(null);
-  const inputRef = useRef(null);
-  const listRef = useRef(null);
-  const opening = useRef(false); // the highlight came from opening, not arrowing
+  const ref = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const opening = useRef(false); // highlight came from opening, not arrowing
 
   const filtered = useMemo(() => filterOptions(options, q), [q, options]);
 
-  // While typing, highlight the first match. With no query (just opened), start
-  // on the currently-selected option and pull it to the TOP of the list, so it's
-  // the first row shown and you can scroll down through what follows.
+  // With no query, highlight the selected option and pull it to the top of the list.
   useEffect(() => {
     if (!open) return;
     if (q) {
@@ -35,25 +43,24 @@ export function Combobox({
       return;
     }
     let idx = filtered.findIndex((o) => o.value === value);
-    if (idx < 0 && value != null) {
+    if (idx < 0 && typeof value === "number") {
       // no exact match (e.g. a mid-section ayah) — land on the last option at/below it
       for (let i = 0; i < filtered.length; i++) {
-        if (typeof filtered[i].value === "number" && filtered[i].value <= value) idx = i;
+        if (typeof filtered[i].value === "number" && (filtered[i].value as number) <= value)
+          idx = i;
       }
     }
     if (idx < 0) idx = 0;
     setHi(idx);
     opening.current = true;
-    // Scroll the LIST only (scrollIntoView would also scroll the page), pulling
-    // the selected row to the top of the dropdown.
+    // Scroll the list only (scrollIntoView would scroll the page too).
     const list = listRef.current,
       el = list?.children[idx];
     if (list && el)
       list.scrollTop += el.getBoundingClientRect().top - list.getBoundingClientRect().top;
   }, [q, open, filtered, value]);
 
-  // Keep the cursor visible as the arrow keys move through a long list — but
-  // don't fight the top-alignment we just did on open. Scrolls the list only.
+  // Keep the highlighted row visible while arrowing, without fighting the on-open alignment.
   useEffect(() => {
     if (!open) return;
     if (opening.current) {
@@ -69,8 +76,8 @@ export function Combobox({
     else if (er.bottom > lr.bottom) list.scrollTop += er.bottom - lr.bottom;
   }, [hi, open]);
   useEffect(() => {
-    const h = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    const h = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     };
     document.addEventListener("mousedown", h);
     return () => document.removeEventListener("mousedown", h);
@@ -81,12 +88,12 @@ export function Combobox({
     setQ("");
     inputRef.current?.blur();
   };
-  const choose = (o) => {
+  const choose = (o: ComboOption) => {
     onSelect(o.value);
     close();
   };
-  const commitNumber = () => {
-    if (allowNumber && /^\d+$/.test(q.trim())) {
+  const commitNumber = (): boolean => {
+    if (allowNumber && onNumber && /^\d+$/.test(q.trim())) {
       onNumber(+q.trim());
       close();
       return true;
@@ -94,7 +101,7 @@ export function Combobox({
     return false;
   };
 
-  const onKey = (e) => {
+  const onKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setOpen(true);

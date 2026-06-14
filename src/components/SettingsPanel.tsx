@@ -1,28 +1,39 @@
 import { useRef } from "react";
-import { normalizeConfig } from "../lib/storage.js";
+import { normalizeConfig } from "../lib/storage.ts";
+import type { Config, ToastAction } from "../types.ts";
 
 const CONFIG_FILENAME = "halaqa-config.json";
+
+// Config fields edited here that hold a plain number.
+type NumericConfigKey = "readingWpm" | "budgetMin" | "budgetMax" | "wordBudget";
+
+interface SettingsPanelProps {
+  config: Config;
+  setConfig: (next: Config) => void;
+  flash: (message: string, action?: ToastAction | null) => void;
+}
 
 /**
  * Collapsible band for global, cross-week preferences (not this week's content):
  * reading speed, the word-budget slider's range, and config backup/restore.
  */
-export function SettingsPanel({ config, setConfig, flash }) {
-  const fileRef = useRef(null);
+export function SettingsPanel({ config, setConfig, flash }: SettingsPanelProps) {
+  const fileRef = useRef<HTMLInputElement>(null);
 
   // Coerce to a whole number ≥ min; ignore empty/NaN input (keeps the field usable mid-edit).
-  const setNum = (key, min) => (e) => {
-    const v = Math.round(+e.target.value);
-    if (!Number.isFinite(v)) return;
-    setConfig({ ...config, [key]: Math.max(min, v) });
-  };
+  const setNum =
+    (key: NumericConfigKey, min: number) => (e: React.ChangeEvent<HTMLInputElement>) => {
+      const v = Math.round(+e.target.value);
+      if (!Number.isFinite(v)) return;
+      setConfig({ ...config, [key]: Math.max(min, v) });
+    };
   // The slider range must stay non-empty, so clamp each bound off the other.
-  const setBudgetMin = (e) => {
+  const setBudgetMin = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = Math.round(+e.target.value);
     if (!Number.isFinite(v)) return;
     setConfig({ ...config, budgetMin: Math.max(1, Math.min(v, config.budgetMax - 1)) });
   };
-  const setBudgetMax = (e) => {
+  const setBudgetMax = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = Math.round(+e.target.value);
     if (!Number.isFinite(v)) return;
     setConfig({ ...config, budgetMax: Math.max(v, config.budgetMin + 1) });
@@ -38,13 +49,13 @@ export function SettingsPanel({ config, setConfig, flash }) {
     URL.revokeObjectURL(url);
   };
 
-  const importConfig = (e) => {
-    const file = e.target.files[0];
+  const importConfig = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
       try {
-        const next = normalizeConfig(JSON.parse(reader.result));
+        const next = normalizeConfig(JSON.parse(reader.result as string));
         const previous = config; // snapshot before replacing, so the import is undoable
         setConfig(next);
         flash("Config imported", { label: "Undo", onClick: () => setConfig(previous) });
@@ -119,7 +130,7 @@ export function SettingsPanel({ config, setConfig, flash }) {
             <button className="sm" onClick={exportConfig}>
               Export config
             </button>
-            <button className="sm" onClick={() => fileRef.current.click()}>
+            <button className="sm" onClick={() => fileRef.current?.click()}>
               Import config
             </button>
             <input

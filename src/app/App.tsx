@@ -1,26 +1,30 @@
 import { useMemo } from "react";
-import { surahName } from "../config/constants.js";
-import { generateMessage } from "../utils/message.js";
-import { nextStart } from "../utils/engine.js";
-import { useConfig } from "../hooks/useConfig.js";
-import { useSurahSections } from "../hooks/useSurahSections.js";
-import { useReaders } from "../hooks/useReaders.js";
-import { useWeekPlan } from "../hooks/useWeekPlan.js";
-import { useToast } from "../hooks/useToast.js";
-import { Masthead } from "../components/Masthead.jsx";
-import { CommandBar } from "../components/CommandBar.jsx";
-import { BucketEditor } from "../components/BucketEditor.jsx";
-import { SplitPanel } from "../components/SplitPanel.jsx";
-import { SettingsPanel } from "../components/SettingsPanel.jsx";
-import { OutputPanel } from "../components/OutputPanel.jsx";
+import { surahName } from "../config/constants.ts";
+import { generateMessage } from "../utils/message.ts";
+import { nextStart } from "../utils/engine.ts";
+import { useConfig } from "../hooks/useConfig.ts";
+import { useSurahSections } from "../hooks/useSurahSections.ts";
+import { useReaders } from "../hooks/useReaders.ts";
+import { useWeekPlan } from "../hooks/useWeekPlan.ts";
+import { useToast } from "../hooks/useToast.ts";
+import { Masthead } from "../components/Masthead.tsx";
+import { CommandBar } from "../components/CommandBar.tsx";
+import { BucketEditor } from "../components/BucketEditor.tsx";
+import { SplitPanel } from "../components/SplitPanel.tsx";
+import { SettingsPanel } from "../components/SettingsPanel.tsx";
+import { OutputPanel } from "../components/OutputPanel.tsx";
 
 /**
- * Top-level orchestrator. State and derivation live in the hooks, markup in
- * the components — this only wires them together.
+ * Top-level orchestrator — state and derivation live in the hooks, markup in the
+ * components; this just wires them together
+ *
+ * Flow: config -> sections + readers -> week -> message
+ *
+ * markSent() is the only mutation (rotate, advance a week).
  */
 export default function App() {
   const [config, setConfig] = useConfig();
-  const { sections, loading, error } = useSurahSections(config.surah);
+  const { sections, status } = useSurahSections(config.surah);
   const readers = useReaders(config);
   const week = useWeekPlan(sections, config, readers.members, readers.weights);
   const { toast, flash, dismiss } = useToast();
@@ -30,8 +34,7 @@ export default function App() {
     [config.surah, week.assignments, config.templates],
   );
 
-  // Where next week begins (rolls over to the next surah at a surah's end).
-  const surahLastAyah = sections?.length ? sections[sections.length - 1].ayahEnd : null;
+  const surahLastAyah = sections.length ? sections[sections.length - 1].ayahEnd : null;
   const next = nextStart(config.surah, config.startAyah, week.weekEnd, surahLastAyah);
   const nextLabel = next.rollOver ? `Surah ${surahName(next.surah)} · Ayat 1` : `Ayat ${next.ayah}`;
 
@@ -58,8 +61,7 @@ export default function App() {
         config={config}
         setConfig={setConfig}
         sections={sections}
-        loading={loading}
-        error={error}
+        status={status}
         members={readers.members}
         togglesActive={readers.togglesActive}
         offCount={readers.offCount}
@@ -104,7 +106,7 @@ export default function App() {
             <button
               className="toastAction"
               onClick={() => {
-                toast.action.onClick();
+                toast.action!.onClick();
                 dismiss();
               }}
             >

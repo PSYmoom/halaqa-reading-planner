@@ -1,11 +1,11 @@
-import { COLORS } from "../config/constants.js";
-import { ayahRange, readingTime, sectionHeading } from "../utils/message.js";
-import { SplitBar } from "./SplitBar.jsx";
+import { COLORS } from "../config/constants.ts";
+import { ayahRange, readingTime, sectionHeading } from "../utils/message.ts";
+import { SplitBar } from "./SplitBar.tsx";
+import type { Assignment, Section, WeekPlan } from "../types.ts";
 
-// Collapse consecutive sections that share an ayah range into one group, so a
-// block split into translation + subheading(s) shows its range once.
-function groupByRange(sections) {
-  const groups = [];
+// Collapse consecutive sections sharing an ayah range, so the range shows once.
+function groupByRange(sections: Section[]): Section[][] {
+  const groups: Section[][] = [];
   for (const s of sections) {
     const last = groups[groups.length - 1];
     if (last && last[0].ayahStart === s.ayahStart && last[0].ayahEnd === s.ayahEnd) last.push(s);
@@ -14,8 +14,14 @@ function groupByRange(sections) {
   return groups;
 }
 
-// One reader's portion: name, totals, and the sections it spans.
-function AssignmentRow({ assignment, color, wpm }) {
+interface AssignmentRowProps {
+  assignment: Assignment;
+  color: string;
+  wpm: number;
+}
+
+/** One reader's portion: name, totals, and the sections it spans. */
+function AssignmentRow({ assignment, color, wpm }: AssignmentRowProps) {
   const meta =
     `· ${ayahRange(assignment)} · ${assignment.words.toLocaleString()} words` +
     ` · ${readingTime(assignment.words, wpm)} · ${assignment.sections.length} section(s)`;
@@ -43,8 +49,13 @@ function AssignmentRow({ assignment, color, wpm }) {
   );
 }
 
+interface SplitPanelProps {
+  week: WeekPlan;
+  wpm: number;
+}
+
 /** The split view — the draggable divider bar plus per-reader assignment details. */
-export function SplitPanel({ week, wpm }) {
+export function SplitPanel({ week, wpm }: SplitPanelProps) {
   const {
     weekSections,
     assignments,

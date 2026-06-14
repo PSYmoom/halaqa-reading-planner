@@ -1,7 +1,19 @@
 import { useMemo } from "react";
-import { SURAH_NAMES, surahName } from "../config/constants.js";
-import { readingTime, sectionHeading } from "../utils/message.js";
-import { Combobox } from "./Combobox.jsx";
+import { SURAH_NAMES, surahName } from "../config/constants.ts";
+import { readingTime, sectionHeading } from "../utils/message.ts";
+import { Combobox } from "./Combobox.tsx";
+import type { ComboOption, Config, FetchStatus, Section, WeekPlan } from "../types.ts";
+
+interface CommandBarProps {
+  config: Config;
+  setConfig: (next: Config) => void;
+  sections: Section[];
+  status: FetchStatus;
+  members: string[];
+  togglesActive: boolean;
+  offCount: number;
+  week: WeekPlan;
+}
 
 /**
  * Full-width command bar — the parameters that define this week
@@ -11,21 +23,20 @@ export function CommandBar({
   config,
   setConfig,
   sections,
-  loading,
-  error,
+  status,
   members,
   togglesActive,
   offCount,
   week,
-}) {
+}: CommandBarProps) {
   // Options for the searchable pickers.
-  const surahOptions = useMemo(
+  const surahOptions = useMemo<ComboOption[]>(
     () => SURAH_NAMES.map((name, i) => ({ value: i + 1, label: `${i + 1}. ${name}` })),
     [],
   );
-  const ayahOptions = useMemo(
+  const ayahOptions = useMemo<ComboOption[]>(
     () =>
-      (sections || []).map((s, i) => ({
+      sections.map((s, i) => ({
         key: i,
         value: s.ayahStart,
         label:
@@ -35,13 +46,13 @@ export function CommandBar({
     [sections],
   );
 
-  const setSurah = (value) => setConfig({ ...config, surah: +value });
-  const setStartAyah = (value) => setConfig({ ...config, startAyah: +value });
-  const setBudget = (value) => setConfig({ ...config, wordBudget: week.snapBudget(+value) });
-  const shownBudget = Math.max(
-    config.budgetMin,
-    Math.min(week.totalWords || config.wordBudget, week.maxBudget),
-  );
+  const setSurah = (value: number | string) => setConfig({ ...config, surah: +value });
+  const setStartAyah = (value: number | string) => setConfig({ ...config, startAyah: +value });
+  const setBudget = (value: string) =>
+    setConfig({ ...config, wordBudget: week.snapBudget(+value) });
+  // Slider shows the budget the user set, not actual coverage, so adding
+  // readers (which can force extra sections) never moves it.
+  const shownBudget = Math.max(config.budgetMin, Math.min(config.wordBudget, week.maxBudget));
   const atSurahEnd = shownBudget >= week.remainingWords;
 
   // Pill labels, named here so the JSX below stays declarative.
@@ -121,12 +132,12 @@ export function CommandBar({
         {togglesActive && <span className="pill warn">Readers Adjusted</span>}
         {offCount > 0 && <span className="pill warn">{offLabel}</span>}
         {coverageLabel && <span className="pill">{coverageLabel}</span>}
-        {loading && <span className="pill">Loading surah…</span>}
+        {status.state === "loading" && <span className="pill">Loading surah…</span>}
       </div>
-      {error && (
+      {status.state === "error" && (
         <div className="err">
-          Couldn't load tafsir: {error}. Check your connection (First load needs internet; It's
-          cached afterwards).
+          Couldn't load tafsir: {status.message}. Check your connection (First load needs internet;
+          It's cached afterwards).
         </div>
       )}
     </div>
