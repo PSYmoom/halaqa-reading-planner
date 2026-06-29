@@ -157,7 +157,7 @@ export const DEFAULT_WEIGHT = 5;
 
 // Words ignored when testing whether a line is a Title-Case heading.
 export const SMALL = new Set(
-  "of the that for which during with from as not but or a an in on to and is was were are be by his their them they he she it this these those who whom at into upon".split(
+  "of the that for which during with from as not but or a an in on to and is was were are be by his their them they he she it this these those who whom at into upon about".split(
     " ",
   ),
 );

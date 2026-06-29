@@ -32,15 +32,21 @@ const TRAILING_ARABIC_PARENS = new RegExp(
   `\\s*\\([^)]*[${ARABIC_BLOCK}${PRESENTATION_FORMS_A}][^)]*\\)$`,
 );
 
-const MAX_HEADING_LENGTH = 100; // longer lines read as prose
+const MAX_HEADING_LENGTH = 140; // longer lines read as prose
 const MIN_HEADING_WORDS = 2; // a lone word isn't a heading
 const MIN_TITLECASE_RATIO = 0.8; // share of significant words that must be capitalised
+
+// The Basmala translation opens nearly every surah's first ayah and is Title-Case,
+// so it slips past the heuristic and hijacks ayah 1's section. It's a translated
+// verse line, not a heading — reject it so the real heading below it wins.
+const BASMALA_TRANSLATION = "in the name of allah, the most gracious, the most merciful";
 
 /** Heuristic: is this line a Title-Case section heading (vs. prose, quote, or Arabic)? */
 export function isHeading(line: string): boolean {
   // Strip a trailing honorific so its ")" isn't read as prose punctuation.
   const s = line.trim().replace(TRAILING_ARABIC_PARENS, "").trim();
   if (!s || s.length > MAX_HEADING_LENGTH) return false;
+  if (s.toLowerCase() === BASMALA_TRANSLATION) return false;
   if (ARABIC.test(s)) return false;
   if (/[.:;,"”’)]$/.test(s)) return false;
   if (/^[(«"]/.test(s)) return false; // quote/translation line

@@ -20,6 +20,20 @@ describe("isHeading", () => {
   test("accepts Title-Case headings", () => {
     assert.equal(isHeading("Virtues of Surat Al-Kahf"), true);
     assert.equal(isHeading("The Story of the People of the Cave"), true);
+    // Lowercase prepositions ("about") must not drag a real heading below the ratio.
+    assert.equal(
+      isHeading(
+        "The Command to have Taqwa, a Reminder about Creation, and Being Kind to Relatives",
+      ),
+      true,
+    );
+    // Real Ibn Kathir headings run long; the length cap must not reject a 119-char one.
+    assert.equal(
+      isHeading(
+        "Poor Caretakers are Allowed to Wisely Spend from the Money of the Orphan Under Their Care, to Compensate for Their Work",
+      ),
+      true,
+    );
   });
   test("rejects prose (ends with punctuation)", () => {
     assert.equal(isHeading("Allah tells us about the people of the cave."), false);
@@ -42,6 +56,9 @@ describe("isHeading", () => {
   });
   test("still rejects an English parenthetical aside (no Arabic inside)", () => {
     assert.equal(isHeading("Well-Acquainted with all that you do.)"), false);
+  });
+  test("rejects the Basmala translation (a verse line, not a heading)", () => {
+    assert.equal(isHeading("In the Name of Allah, the Most Gracious, the Most Merciful"), false);
   });
   test("rejects Arabic, quotes, empty, single-word, and over-long lines", () => {
     assert.equal(isHeading("بسم الله الرحمن الرحيم"), false);
